@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import type { ZoneConfig, ZoneTickData } from './ZoneMap';
 import type { AlertData } from './AlertPanel';
 
@@ -10,6 +10,7 @@ interface LiveCommandCenterProps {
   onSelectZone: (id: string) => void;
   wsConnected: boolean;
   sourceMode: string;
+  camerasStatus?: Record<string, { online: boolean; last_seen_s?: number }>;
   onOpenLanding?: () => void;
 }
 
@@ -124,9 +125,10 @@ const LiveCCTVTile: React.FC<{
   cam: CCTVCamera;
   liveDensity: number;
   isSelected: boolean;
+  isOnline?: boolean;
   onSelect: () => void;
   onInspect: () => void;
-}> = ({ cam, liveDensity, isSelected, onSelect, onInspect }) => {
+}> = ({ cam, liveDensity, isSelected, isOnline = true, onSelect, onInspect }) => {
   const isDanger = liveDensity >= 4.0;
   const [streamFailed, setStreamFailed] = useState(false);
   const streamUrl = `/api/feed/${cam.id.toLowerCase()}.mjpeg`;
@@ -212,22 +214,40 @@ const LiveCCTVTile: React.FC<{
         </svg>
       )}
 
-      {/* Top Banner: Timestamp & LIVE Tag */}
+      {/* Top Banner: Timestamp & Real Delivery Status */}
       <div className="relative z-10 flex items-center justify-between p-1.5 bg-black/40 backdrop-blur-[2px]">
         <div className="flex items-center gap-1">
-          <span className={`w-1.5 h-1.5 rounded-full ${cam.id === 'cam-live' ? 'bg-cyan-400 animate-pulse' : 'bg-rose-500 animate-ping'}`} />
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${
+              isOnline
+                ? cam.id === 'cam-live'
+                  ? 'bg-cyan-400 animate-pulse'
+                  : 'bg-emerald-400'
+                : 'bg-rose-500 animate-ping'
+            }`}
+          />
           <span className={`font-mono text-[8px] font-bold ${cam.id === 'cam-live' ? 'text-cyan-300' : 'text-slate-300'}`}>
             {cam.id === 'cam-live' ? 'CAM-LIVE' : timeStr}
           </span>
         </div>
         <div className="flex items-center gap-1">
           {cam.id === 'cam-live' ? (
-            <span className="bg-cyan-950/90 backdrop-blur-sm border border-cyan-400/80 text-cyan-300 text-[8px] font-mono font-black px-1.5 py-0.2 rounded shadow-[0_0_6px_rgba(6,182,212,0.5)]">
-              WEBCAM
+            <span
+              className={`backdrop-blur-sm border text-[8px] font-mono font-black px-1.5 py-0.2 rounded shadow-[0_0_6px_rgba(6,182,212,0.5)] ${
+                isOnline
+                  ? 'bg-cyan-950/90 border-cyan-400/80 text-cyan-300'
+                  : 'bg-rose-950/90 border-rose-500/80 text-rose-300'
+              }`}
+            >
+              {isOnline ? 'WEBCAM' : 'OFFLINE'}
+            </span>
+          ) : isOnline ? (
+            <span className="bg-black/80 backdrop-blur-sm border border-emerald-500/50 text-emerald-400 text-[8px] font-mono font-black px-1.5 py-0.2 rounded">
+              ONLINE
             </span>
           ) : (
-            <span className="bg-black/80 backdrop-blur-sm border border-emerald-500/50 text-emerald-400 text-[8px] font-mono font-black px-1.5 py-0.2 rounded">
-              LIVE
+            <span className="bg-rose-950/80 backdrop-blur-sm border border-rose-500/60 text-rose-300 text-[8px] font-mono font-black px-1.5 py-0.2 rounded animate-pulse">
+              STALLED
             </span>
           )}
         </div>
@@ -252,8 +272,13 @@ const LiveCCTVTile: React.FC<{
         <div className="flex items-center gap-1.5 min-w-0 pr-1">
           <span
             className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-              isDanger ? 'bg-rose-500 animate-ping' : 'bg-emerald-400'
+              isDanger
+                ? 'bg-rose-500 animate-ping'
+                : isOnline
+                ? 'bg-emerald-400'
+                : 'bg-rose-500'
             }`}
+            title={isOnline ? 'Active (delivering frames)' : 'Stalled (no frames in 5s)'}
           />
           <span className="text-slate-200 font-bold whitespace-nowrap overflow-hidden text-ellipsis">
             {cam.label} · {cam.name}
@@ -279,6 +304,7 @@ export const LiveCommandCenter: React.FC<LiveCommandCenterProps> = ({
   onSelectZone,
   wsConnected,
   sourceMode,
+  camerasStatus,
   onOpenLanding,
 }) => {
   const [currentTime, setCurrentTime] = useState<string>('14:32:07');
@@ -301,6 +327,50 @@ export const LiveCommandCenter: React.FC<LiveCommandCenterProps> = ({
       return false;
     }
   });
+
+  // Mode classification and truthful display badge (UPDATE 3)
+  const modeBadge = useMemo(() => {
+    const mode = (sourceMode || 'simulator').toLowerCase();
+    if (mode.includes('video') && mode.includes('webcam')) {
+      return {
+        label: 'LIVE VIDEO + WEBCAM',
+        textColor: 'text-cyan-300',
+        bgColor: 'bg-cyan-950/80',
+        borderColor: 'border-cyan-500/70',
+        dotColor: 'bg-cyan-400',
+      };
+    }
+    if (mode.includes('video')) {
+      return {
+        label: 'LIVE VIDEO',
+        textColor: 'text-cyan-300',
+        bgColor: 'bg-cyan-950/80',
+        borderColor: 'border-cyan-500/70',
+        dotColor: 'bg-cyan-400',
+      };
+    }
+    if (mode.includes('webcam')) {
+      return {
+        label: 'LIVE WEBCAM',
+        textColor: 'text-emerald-300',
+        bgColor: 'bg-emerald-950/80',
+        borderColor: 'border-emerald-500/70',
+        dotColor: 'bg-emerald-400',
+      };
+    }
+    return {
+      label: 'TRAINING MODE',
+      textColor: 'text-amber-300',
+      bgColor: 'bg-amber-950/80',
+      borderColor: 'border-amber-500/70',
+      dotColor: 'bg-amber-400',
+    };
+  }, [sourceMode]);
+
+  const isTrainingMode = useMemo(() => {
+    const mode = (sourceMode || 'simulator').toLowerCase();
+    return mode === 'simulator' || mode === 'timeline';
+  }, [sourceMode]);
 
   // Dynamic Webcam detection & camera array with CAM-LIVE
   const isWebcamActive = useMemo(() => {
@@ -325,6 +395,22 @@ export const LiveCommandCenter: React.FC<LiveCommandCenterProps> = ({
     };
     return [...CAMERAS, webcamCam];
   }, [isWebcamActive]);
+
+  // Real Camera Delivery Tracking: green = frames in last 5s, red = stalled
+  const getCameraOnline = useCallback(
+    (camId: string) => {
+      if (!camerasStatus || Object.keys(camerasStatus).length === 0) {
+        return wsConnected;
+      }
+      const st = camerasStatus[camId.toLowerCase()];
+      return st ? Boolean(st.online) : false;
+    },
+    [camerasStatus, wsConnected]
+  );
+
+  const onlineCamerasCount = useMemo(() => {
+    return displayedCameras.filter((c) => getCameraOnline(c.id)).length;
+  }, [displayedCameras, getCameraOnline]);
 
   const [activeVoiceBroadcast, setActiveVoiceBroadcast] = useState<{
     playing: boolean;
@@ -393,10 +479,12 @@ export const LiveCommandCenter: React.FC<LiveCommandCenterProps> = ({
     }
   };
 
-  // Trigger Hindi voice broadcast
-  const handleTriggerAlert = async () => {
+  // Trigger Hindi voice broadcast for active highest-risk zone across all modes
+  const handleTriggerAlert = async (targetZoneId?: string) => {
     try {
-      const res = await fetch('/api/demo/trigger-alert', { method: 'POST' });
+      const zid = targetZoneId || activeCriticalZone?.id || highestRiskZone?.id || '';
+      const url = zid ? `/api/demo/trigger-alert?zone_id=${encodeURIComponent(zid)}` : '/api/demo/trigger-alert';
+      const res = await fetch(url, { method: 'POST' });
       const data = await res.json();
       playAlertSound(data.audio_url, data.text, data.provider);
     } catch {
@@ -720,9 +808,9 @@ export const LiveCommandCenter: React.FC<LiveCommandCenterProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="font-semibold text-white text-sm">Kashi Queue Complex</span>
-              <span className="flex items-center gap-1.5 text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-700/40 px-2 py-0.2 rounded-full">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                LIVE
+              <span className={`flex items-center gap-1.5 text-xs font-mono font-bold px-2.5 py-0.5 rounded-full border ${modeBadge.bgColor} ${modeBadge.borderColor} ${modeBadge.textColor}`}>
+                <span className={`w-2 h-2 rounded-full ${modeBadge.dotColor} animate-pulse`} />
+                {modeBadge.label}
               </span>
             </div>
             <div className="text-[10px] text-slate-400 font-sans">
@@ -744,16 +832,16 @@ export const LiveCommandCenter: React.FC<LiveCommandCenterProps> = ({
             <span>{activeAlertCount > 0 ? `${activeAlertCount} ACTIVE ALERT${activeAlertCount > 1 ? 'S' : ''}` : '1 ACTIVE ALERT'}</span>
           </button>
 
-          {/* Connection Status Badge */}
-          <div className="hidden xl:flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-900/90 border border-slate-800 text-[10px] font-mono">
+          {/* Top Bar Real Source Mode Badge */}
+          <div className={`hidden xl:flex items-center gap-2 px-3 py-1 rounded-full border text-[10px] font-mono shadow-sm ${modeBadge.bgColor} ${modeBadge.borderColor} ${modeBadge.textColor}`}>
             <span
-              className={`w-1.5 h-1.5 rounded-full ${
-                wsConnected ? 'bg-emerald-400 animate-pulse' : 'bg-cyan-400'
+              className={`w-1.5 h-1.5 rounded-full ${modeBadge.dotColor} ${
+                wsConnected ? 'animate-pulse' : ''
               }`}
             />
-            <span className="text-slate-300 font-bold uppercase">{sourceMode}</span>
+            <span className="font-bold uppercase tracking-wider">{modeBadge.label}</span>
             <span className="text-slate-500">|</span>
-            <span className="text-cyan-400">{zones.length || 8} ZONES</span>
+            <span className="text-slate-300">{zones.length || 8} ZONES</span>
           </div>
 
           {/* Clock & Date */}
@@ -836,35 +924,75 @@ export const LiveCommandCenter: React.FC<LiveCommandCenterProps> = ({
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          {/* 1. Inject Drill Scenario (Training Mode only) */}
           <button
-            onClick={handleTriggerEscalation}
+            onClick={isTrainingMode ? handleTriggerEscalation : undefined}
+            disabled={!isTrainingMode}
+            title={
+              !isTrainingMode
+                ? "Scenario injection is available in Training Mode only — live data cannot be scripted."
+                : isEscalating
+                ? "Drill scenario in progress"
+                : "Inject scripted crowd surge drill scenario"
+            }
             className={`px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all shadow-md ${
-              isEscalating
+              !isTrainingMode
+                ? 'opacity-40 cursor-not-allowed bg-slate-900 border border-slate-800 text-slate-500'
+                : isEscalating
                 ? 'bg-rose-600 text-white shadow-rose-900 animate-pulse'
                 : 'bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-600/70 hover:scale-105'
             }`}
           >
-            <span className="w-2 h-2 rounded-full bg-rose-400 animate-ping" />
-            <span>{isEscalating ? 'ESCALATION IN PROGRESS...' : '🚨 TRIGGER ESCALATION (3x)'}</span>
+            <span
+              className={`w-2 h-2 rounded-full ${
+                isTrainingMode
+                  ? isEscalating
+                    ? 'bg-rose-400 animate-ping'
+                    : 'bg-rose-500'
+                  : 'bg-slate-600'
+              }`}
+            />
+            <span>{isEscalating ? 'DRILL IN PROGRESS...' : 'INJECT DRILL SCENARIO'}</span>
           </button>
 
+          {/* 2. End Drill (Training Mode only) */}
           <button
-            onClick={handleTriggerClear}
-            className="px-3 py-1.5 rounded-lg bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-700/60 font-bold text-xs flex items-center gap-1.5 transition-all hover:scale-105"
+            onClick={isTrainingMode ? handleTriggerClear : undefined}
+            disabled={!isTrainingMode}
+            title={
+              !isTrainingMode
+                ? "Scenario injection is available in Training Mode only — live data cannot be scripted."
+                : "End active drill and reset nominal state"
+            }
+            className={`px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all ${
+              !isTrainingMode
+                ? 'opacity-40 cursor-not-allowed bg-slate-900 border border-slate-800 text-slate-500'
+                : 'bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-700/60 hover:scale-105'
+            }`}
           >
             <span>🟢</span>
-            <span>RESET NOMINAL</span>
+            <span>END DRILL</span>
           </button>
 
+          {/* 3. Broadcast Hindi Voice - Enabled in ALL modes */}
           <button
-            onClick={handleTriggerAlert}
-            className="px-3 py-1.5 rounded-lg bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 border border-cyan-700/60 font-bold text-xs flex items-center gap-1.5 transition-all hover:scale-105"
+            onClick={() => handleTriggerAlert(highestRiskZone?.id)}
+            className="px-3 py-1.5 rounded-lg bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 border border-cyan-700/60 font-bold text-xs flex items-center gap-1.5 transition-all hover:scale-105 shadow-md shadow-cyan-950/30"
+            title={`Broadcast voice alert for highest-risk zone (${highestRiskZone?.name || 'Active Zone'})`}
           >
             <span>🔊</span>
             <span>BROADCAST HINDI VOICE (Sarvam AI)</span>
           </button>
         </div>
       </div>
+
+      {/* Subtle Drill Watermark Overlay (top-right, amber, subtle) */}
+      {isTrainingMode && isEscalating && (
+        <div className="fixed top-3 right-5 z-40 pointer-events-none select-none flex items-center gap-2 px-3 py-1 rounded-md bg-amber-950/85 border border-amber-500/60 text-amber-300 shadow-xl shadow-amber-950/40 backdrop-blur-md animate-pulse font-mono text-[10px] font-black uppercase tracking-widest">
+          <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+          <span>DRILL SCENARIO ACTIVE</span>
+        </div>
+      )}
 
       {/* 1.6. ACTIVE AUDIO EQUALIZER BROADCAST BANNER */}
       {activeVoiceBroadcast && (
@@ -926,9 +1054,21 @@ export const LiveCommandCenter: React.FC<LiveCommandCenterProps> = ({
                 Live CCTV Feeds
               </h2>
             </div>
-            <span className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-700/30 px-2 py-0.5 rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              {displayedCameras.length}/{displayedCameras.length} Online
+            <span
+              className={`flex items-center gap-1.5 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${
+                onlineCamerasCount === displayedCameras.length
+                  ? 'text-emerald-400 bg-emerald-950/40 border-emerald-700/30'
+                  : onlineCamerasCount > 0
+                  ? 'text-amber-400 bg-amber-950/40 border-amber-700/30'
+                  : 'text-rose-400 bg-rose-950/40 border-rose-700/30'
+              }`}
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  onlineCamerasCount > 0 ? 'bg-emerald-400 animate-pulse' : 'bg-rose-500'
+                }`}
+              />
+              {onlineCamerasCount}/{displayedCameras.length} Online
             </span>
           </div>
 
@@ -937,6 +1077,7 @@ export const LiveCommandCenter: React.FC<LiveCommandCenterProps> = ({
             {displayedCameras.map((cam) => {
               const liveDensity = getZoneDensity(cam.zoneId, cam.defaultDensity);
               const isSelected = cam.zoneId === selectedZoneId;
+              const isOnline = getCameraOnline(cam.id);
 
               return (
                 <LiveCCTVTile
@@ -944,6 +1085,7 @@ export const LiveCommandCenter: React.FC<LiveCommandCenterProps> = ({
                   cam={cam}
                   liveDensity={liveDensity}
                   isSelected={isSelected}
+                  isOnline={isOnline}
                   onSelect={() => onSelectZone(cam.zoneId)}
                   onInspect={() => setInspectingCam(cam)}
                 />

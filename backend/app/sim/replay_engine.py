@@ -125,6 +125,7 @@ class CameraInstance:
             crit = float(z.get("critical_threshold", default_zone.critical_threshold if default_zone else 4.0))
             self.zones.append(Zone(id=canonical_id, name=name, points=poly, area_m2=area, critical_threshold=crit))
 
+        self.last_frame_time: float = 0.0
         self.prev_frame: Optional[np.ndarray] = None
         self.latest_raw_frame: Optional[np.ndarray] = None
         self.latest_annotated_frame: Optional[np.ndarray] = None
@@ -164,6 +165,7 @@ class CameraInstance:
                 return None
 
             self.is_connected = True
+            self.last_frame_time = time.time()
             self.latest_raw_frame = frame
             return frame
 
@@ -171,6 +173,7 @@ class CameraInstance:
             if self.source_path and self.source_path.exists():
                 self.cap = cv2.VideoCapture(str(self.source_path))
             if not self.cap or not self.cap.isOpened():
+                self.is_connected = False
                 return None
 
         ret, frame = self.cap.read()
@@ -178,7 +181,11 @@ class CameraInstance:
             self.cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
             ret, frame = self.cap.read()
             if not ret or frame is None:
+                self.is_connected = False
                 return None
+
+        self.is_connected = True
+        self.last_frame_time = time.time()
 
         # Apply normalized crop if present: [x, y, w, h]
         if self.crop and len(self.crop) == 4:
@@ -520,6 +527,27 @@ class ReplayEngine:
             incidents_path = Path(__file__).resolve().parent.parent.parent.parent / "sample_data" / "incidents.jsonl"
         self.incidents_path = Path(incidents_path)
         self.incidents_path.parent.mkdir(parents=True, exist_ok=True)
+        self.latest_tick: Dict[str, Any] = {}
+
+    def get_highest_risk_zone(self) -> Dict[str, Any]:
+        """Returns the active zone with the highest risk (or highest density if risks are equal)."""
+        zones = self.latest_tick.get("zones", [])
+        if not zones:
+            if isinstance(self.source, VideoFileSource):
+                best_zone = None
+                max_d = -1.0
+                for c in self.source.cameras:
+                    for z in c.zones:
+                        zm = self.source.get_zone_metrics(z.id)
+                        d = zm.get("density", 0.0)
+                        if d > max_d:
+                            max_d = d
+                            best_zone = {"id": z.id, "name": z.name, "density": d, "risk": 20.0}
+                if best_zone:
+                    return best_zone
+            return {"id": "barricade_corridor", "name": "Barricade Corridor", "density": 4.6, "risk": 87.0}
+
+        return max(zones, key=lambda z: (float(z.get("risk", 0.0)), float(z.get("density", 0.0))))
 
     def get_camera_jpeg(self, cam_id: str) -> Optional[bytes]:
         """Returns the latest annotated JPEG frame for a specific camera ID."""
@@ -834,11 +862,37 @@ class ReplayEngine:
         # Latest or all active alerts in tick
         current_alerts = list(self.active_alerts.values())
 
+        # Real Camera Delivery Health Tracking
+        cameras_status = []
+        if isinstance(self.source, VideoFileSource):
+            for c in self.source.cameras:
+                last_t = getattr(c, "last_frame_time", 0.0)
+                # Online if connected and delivered a frame in the last 5.0 seconds
+                is_online = c.is_connected and (now - last_t <= 5.0 if last_t > 0 else c.is_connected)
+                cameras_status.append({
+                    "id": c.cam_id.lower(),
+                    "name": c.name,
+                    "online": is_online,
+                    "last_seen_s": round(now - last_t, 1) if last_t > 0 else None,
+                    "is_webcam": getattr(c, "is_webcam", False),
+                })
+        else:
+            for i in range(1, 7):
+                cameras_status.append({
+                    "id": f"cam-0{i}",
+                    "name": f"CAM-0{i}",
+                    "online": True,
+                    "last_seen_s": 0.1,
+                    "is_webcam": False,
+                })
+
         tick = {
             "ts": now_iso,
             "zones": zone_payloads,
             "alerts": current_alerts,
+            "cameras": cameras_status,
         }
+        self.latest_tick = tick
 
         # Put tick in queue (evict oldest if full)
         if self.queue.full():

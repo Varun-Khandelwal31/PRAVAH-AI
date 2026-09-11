@@ -4,7 +4,7 @@ import logging
 import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query, Request
 
 from app.config import settings
 
@@ -139,18 +139,53 @@ async def trigger_demo_clear():
     }
 
 
+ZONE_HINDI_NAMES = {
+    "north_entry": "उत्तरी प्रवेश द्वार (नॉर्थ एंट्री)",
+    "ticket_queue": "टिकट कतार",
+    "barricade_corridor": "बैरिकेड कॉरिडोर",
+    "side_passage": "पार्श्व मार्ग (साइड पैसेज)",
+    "east_wing": "पूर्वी विंग (ईस्ट विंग)",
+    "main_concourse": "मुख्य प्रांगण (मेन कॉनकोर्स)",
+    "gate_2_overflow": "गेट 2 ओवरफ्लो",
+    "exit_lane": "निकास मार्ग",
+    "live_hall": "लाइव हॉल",
+}
+
+
 @router.post("/api/demo/trigger-alert")
 @router.post("/demo/trigger-alert")
-async def trigger_demo_alert():
-    """Synthesizes and emits a live Hindi voice alert for Barricade Corridor."""
+async def trigger_demo_alert(request: Request, zone_id: Optional[str] = Query(None)):
+    """Synthesizes and emits a live Hindi voice alert for the active highest-risk zone across all modes."""
     from app.alerts.voice import generate_voice_alert
-    
-    hindi_text = "कृपया ध्यान दें, बैरिकेड कॉरिडोर में भीड़ अत्यधिक बढ़ गई है। कृपया तुरंत गेट 2 की तरफ प्रस्थान करें।"
+
+    engine = _engine or getattr(request.app.state, "engine", None)
+    target_zone_id = zone_id
+    target_zone_name = "Barricade Corridor"
+
+    if engine is not None and hasattr(engine, "get_highest_risk_zone"):
+        if not target_zone_id:
+            hz = engine.get_highest_risk_zone()
+            if hz:
+                target_zone_id = hz.get("id", "barricade_corridor")
+                target_zone_name = hz.get("name", "Barricade Corridor")
+        else:
+            for z in settings.zones:
+                if z.id == target_zone_id:
+                    target_zone_name = z.name
+                    break
+
+    if not target_zone_id:
+        target_zone_id = "barricade_corridor"
+        target_zone_name = "Barricade Corridor"
+
+    hindi_zone = ZONE_HINDI_NAMES.get(target_zone_id, target_zone_name)
+    hindi_text = f"कृपया ध्यान दें, {hindi_zone} में भीड़ अत्यधिक बढ़ गई है। कृपया वैकल्पिक मार्ग का उपयोग करें और तुरंत सुरक्षित क्षेत्र की ओर बढ़ें।"
     audio_url, provider = await generate_voice_alert(hindi_text)
-    
+
     return {
         "status": "alert_triggered",
-        "zone": "Barricade Corridor",
+        "zone": target_zone_name,
+        "zone_id": target_zone_id,
         "text": hindi_text,
         "audio_url": audio_url,
         "provider": provider,

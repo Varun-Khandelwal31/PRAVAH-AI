@@ -71,6 +71,7 @@ export function App() {
   const [selectedZoneId, setSelectedZoneId] = useState<string>('barricade_corridor');
   const [sourceMode, setSourceMode] = useState<string>('simulator');
   const [wsConnected, setWsConnected] = useState<boolean>(false);
+  const [camerasStatus, setCamerasStatus] = useState<Record<string, { online: boolean; last_seen_s?: number }>>({});
   const [viewMode, setViewMode] = useState<'landing' | 'console'>(() => {
     const hash = window.location.hash.toLowerCase();
     const search = new URLSearchParams(window.location.search);
@@ -143,6 +144,14 @@ export function App() {
       setAlerts(tick.alerts);
     } else {
       setAlerts([]);
+    }
+
+    if (tick.cameras && Array.isArray(tick.cameras)) {
+      const camMap: Record<string, { online: boolean; last_seen_s?: number }> = {};
+      tick.cameras.forEach((c: any) => {
+        camMap[c.id.toLowerCase()] = { online: Boolean(c.online), last_seen_s: c.last_seen_s };
+      });
+      setCamerasStatus(camMap);
     }
   }, []);
 
@@ -269,6 +278,7 @@ export function App() {
       onSelectZone={setSelectedZoneId}
       wsConnected={wsConnected}
       sourceMode={sourceMode}
+      camerasStatus={camerasStatus}
       onOpenLanding={() => {
         window.location.hash = 'landing';
         setViewMode('landing');
