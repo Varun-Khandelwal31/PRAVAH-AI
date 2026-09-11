@@ -109,3 +109,14 @@
 {"ts": "2026-09-11T05:04:54.125502+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}
 {"ts": "2026-09-11T05:20:41.451266+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}
 {"ts": "2026-09-11T05:59:53.668555+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}
+{"ts": "2026-09-11T07:47:20.891825+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}
+{"ts": "2026-09-11T07:47:23.091742+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}
+{"ts": "2026-09-11T07:49:31.074977+00:00", "event": "alert", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "actions": ["Open Gate 2 for overflow", "Divert flow via Side Passage", "Dispatch 2 marshals"], "eta_s": 68, "density": 3.47, "risk": 55.05, "audio_url": "/static/audio/1832afbcacad1d3a_edge.mp3", "via": "via edge-tts"}
+{"ts": "2026-09-11T07:50:17.121946+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 0.6, "risk": 7.0}
+{"ts": "2026-09-11T07:51:31.192604+00:00", "event": "alert", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "actions": ["Open Gate 2 for overflow", "Divert flow via Side Passage", "Dispatch 2 marshals"], "eta_s": 68, "density": 3.47, "risk": 55.05, "audio_url": "/static/audio/1832afbcacad1d3a_edge.mp3", "via": "via edge-tts"}
+{"ts": "2026-09-11T07:52:17.249297+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 0.6, "risk": 7.0}
+{"ts": "2026-09-11T07:53:31.329343+00:00", "event": "alert", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "actions": ["Open Gate 2 for overflow", "Divert flow via Side Passage", "Dispatch 2 marshals"], "eta_s": 68, "density": 3.47, "risk": 55.05, "audio_url": "/static/audio/1832afbcacad1d3a_edge.mp3", "via": "via edge-tts"}
+{"ts": "2026-09-11T07:54:17.371337+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 0.6, "risk": 7.0}
+{"ts": "2026-09-11T07:55:31.464586+00:00", "event": "alert", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "actions": ["Open Gate 2 for overflow", "Divert flow via Side Passage", "Dispatch 2 marshals"], "eta_s": 68, "density": 3.47, "risk": 55.05, "audio_url": "/static/audio/1832afbcacad1d3a_edge.mp3", "via": "via edge-tts"}
+{"ts": "2026-09-11T07:55:43.929057+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}
+{"ts": "2026-09-11T07:55:46.126974+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}

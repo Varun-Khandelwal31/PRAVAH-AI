@@ -358,6 +358,15 @@ export const LiveCommandCenter: React.FC<LiveCommandCenterProps> = ({
         dotColor: 'bg-emerald-400',
       };
     }
+    if (mode.includes('timeline')) {
+      return {
+        label: 'TIMELINE REPLAY',
+        textColor: 'text-purple-300',
+        bgColor: 'bg-purple-950/80',
+        borderColor: 'border-purple-500/70',
+        dotColor: 'bg-purple-400',
+      };
+    }
     return {
       label: 'TRAINING MODE',
       textColor: 'text-amber-300',

@@ -428,10 +428,54 @@ class TimelineSource(SourceAdapter):
             "tick_index": self.index - 1,
             "zones": [dict(z) for z in raw_tick.get("zones", [])],
             "alerts": [dict(a) for a in raw_tick.get("alerts", [])],
+            "cameras": [
+                dict(c)
+                for c in raw_tick.get(
+                    "cameras",
+                    [
+                        {
+                            "id": f"cam-0{i}",
+                            "name": f"CAM-0{i}",
+                            "online": True,
+                            "last_seen_s": 0.1,
+                            "is_webcam": False,
+                        }
+                        for i in range(1, 7)
+                    ],
+                )
+            ],
         }
         for alert in tick["alerts"]:
             alert["ts"] = now_iso
         return tick
+
+    def get_camera_jpeg(self, cam_id: str) -> Optional[bytes]:
+        """Generate a labeled synthetic preview frame for a camera in timeline mode."""
+        frame = np.zeros((360, 640, 3), dtype=np.uint8)
+        frame[:] = (26, 14, 10)
+        cv2.rectangle(frame, (8, 8), (632, 352), (180, 100, 255), 1)
+        cv2.putText(
+            frame,
+            f"{cam_id.upper()} [TIMELINE REPLAY]",
+            (24, 45),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.7,
+            (210, 160, 255),
+            2,
+            cv2.LINE_AA,
+        )
+        cv2.putText(
+            frame,
+            "OFFLINE DRILL REPLAY @ 1 Hz (Zero CV Compute)",
+            (24, 85),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.5,
+            (0, 255, 136),
+            1,
+            cv2.LINE_AA,
+        )
+        ret, jpeg = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 65])
+        return jpeg.tobytes() if ret else None
 
     def read(self) -> Tuple[bool, Optional[np.ndarray], Optional[List[Tuple[float, float, float]]]]:
         dummy_frame = np.zeros((720, 1280, 3), dtype=np.uint8)
@@ -477,8 +521,16 @@ class ReplayEngine:
     ):
         # Resolve Source Adapter from environment
         raw_mode = os.environ.get("SOURCE_MODE", getattr(settings, "source_mode", "simulator")).lower()
-        if "timeline" in raw_mode:
+        pipeline_fps_env = os.environ.get("PIPELINE_FPS")
+        if pipeline_fps_env:
+            try:
+                fps = float(pipeline_fps_env)
+            except ValueError:
+                pass
+        elif "timeline" in raw_mode:
             fps = 1.0
+        else:
+            fps = getattr(settings, "pipeline_fps", fps)
 
         self.fps = fps
         self.dt = 1.0 / fps
@@ -553,6 +605,8 @@ class ReplayEngine:
         """Returns the latest annotated JPEG frame for a specific camera ID."""
         if isinstance(self.source, VideoFileSource):
             return self.source.get_camera_jpeg(cam_id)
+        if isinstance(self.source, TimelineSource):
+            return self.source.get_camera_jpeg(cam_id)
         if self.current_frame is not None:
             ret, jpeg = cv2.imencode(".jpg", self.current_frame, [cv2.IMWRITE_JPEG_QUALITY, 68])
             if ret:
@@ -606,6 +660,7 @@ class ReplayEngine:
             if tick:
                 _, frame, _ = self.source.read()
                 self.current_frame = frame
+                self.latest_tick = tick
 
                 # Track active alerts and trigger incident events
                 current_alerts = tick.get("alerts", [])

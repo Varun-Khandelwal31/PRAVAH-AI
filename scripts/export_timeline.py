@@ -74,6 +74,7 @@ def generate_timeline(total_seconds: int = 120):
                     "id": zone.id,
                     "name": zone.name,
                     "density": bc_dens,
+                    "count": int(round(bc_dens * (zone.area_m2 or 40.0))),
                     "jam": bc_jam,
                     "surge": bc_surge,
                     "trend_slope": bc_slope,
@@ -89,6 +90,7 @@ def generate_timeline(total_seconds: int = 120):
                     "id": zone.id,
                     "name": zone.name,
                     "density": ambient_dens,
+                    "count": int(round(ambient_dens * (zone.area_m2 or 30.0))),
                     "jam": 0.0,
                     "surge": 0.0,
                     "trend_slope": 0.0,
@@ -124,6 +126,16 @@ def generate_timeline(total_seconds: int = 120):
             "tick_index": s,
             "zones": zones_data,
             "alerts": alerts,
+            "cameras": [
+                {
+                    "id": f"cam-0{i}",
+                    "name": f"CAM-0{i}",
+                    "online": True,
+                    "last_seen_s": 0.1,
+                    "is_webcam": False,
+                }
+                for i in range(1, 7)
+            ],
         }
         timeline.append(tick)
 

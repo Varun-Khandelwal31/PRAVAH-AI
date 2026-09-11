@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     weights_path: Path = Path("vendor/weights/yolov8n.pt")
     frame_skip: int = 0
     source_mode: str = "video"
+    pipeline_fps: float = 5.0
     live_hall_area_m2: float = 30.0
     zones: List[Zone] = Field(default_factory=list)
 

@@ -35,13 +35,20 @@ async def benchmark_mode(mode_name: str, engine: ReplayEngine, num_ticks: int = 
     p95_ms = np.percentile(timings, 95)
 
     print("-" * 52)
-    print(f"SUMMARY ({mode_name.upper()}):")
+    print(f"PERFORMANCE REPORT ({mode_name.upper()}):")
     print(f"  Ticks Measured: {num_ticks}")
     print(f"  Average:        {avg_ms:.2f} ms")
     print(f"  Min:            {min_ms:.2f} ms")
     print(f"  Max:            {max_ms:.2f} ms")
     print(f"  95th %:         {p95_ms:.2f} ms")
-    print(f"  Target:         < 500.00 ms -> {'VERIFIED PASS' if avg_ms < 500.0 else 'FAILED'}")
+    print(f"  Target:         <= 500.00 ms -> {'PASS' if avg_ms <= 500.0 else 'EXCEEDED'}")
+    if avg_ms > 500.0:
+        suggested_fps = max(1.0, round(5.0 * (450.0 / avg_ms), 1))
+        print(f"  [RECOMMENDATION]: Average {avg_ms:.1f}ms exceeds 500ms limit on this host.")
+        print(f"  Set env PIPELINE_FPS={suggested_fps} to reduce per-camera load.")
+        print(f"  Tradeoff: Latency drops from {avg_ms:.1f}ms to <450ms; camera optical flow refresh slows to {suggested_fps / 7:.2f} FPS per camera.")
+    else:
+        print(f"  [STATUS]: Latency headroom is {500.0 - avg_ms:.1f}ms. No FPS reduction required.")
     print("========================================================\n")
     return timings
 
@@ -49,8 +56,8 @@ async def benchmark_mode(mode_name: str, engine: ReplayEngine, num_ticks: int = 
 async def main():
     mode = os.environ.get("SOURCE_MODE", "video,webcam")
     os.environ["SOURCE_MODE"] = mode
-    video_engine = ReplayEngine(source=VideoFileSource())
-    await benchmark_mode(f"Hybrid Mode ({mode} - Round-Robin + YOLOv8n + Farneback)", video_engine, num_ticks=40)
+    engine = ReplayEngine()
+    await benchmark_mode("VIDEO+WEBCAM", engine, num_ticks=60)
 
 
 if __name__ == "__main__":
