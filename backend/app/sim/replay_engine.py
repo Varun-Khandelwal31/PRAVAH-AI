@@ -16,7 +16,10 @@ from app.alerts.voice import voice_resolver
 from app.config import Zone, settings
 from app.pipeline.density import compute_zone_densities, point_in_polygon
 from app.pipeline.detector import PersonDetector
+from app.pipeline.drill import drill_metrics
 from app.pipeline.flow import FlowAnalyzer
+from app.pipeline.hybrid_density import fuse_zone_count
+from app.pipeline.playbook import playbook_for
 from app.pipeline.risk import eta_to_critical, level, risk_score
 from app.sim.simulator import CrowdSimulator
 
@@ -139,6 +142,10 @@ class CameraInstance:
                 "jam": 0.0,
                 "surge": 0.0,
                 "mean_flow": 0.0,
+                "yolo_count": 0,
+                "occlusion": 0.0,
+                "count_source": "yolo",
+                "confidence": 1.0,
             }
             for z in self.zones
         }
@@ -209,7 +216,8 @@ class CameraInstance:
             pts = np.array([[int(p[0] * w), int(p[1] * h)] for p in zone.points], dtype=np.int32)
             cv2.polylines(annotated, [pts], True, (0, 229, 255), 2)
             zm = self.zone_metrics.get(zone.id, {"count": 0, "density": 0.0})
-            z_label = f"{zone.name}: {zm['count']}p ({zm['density']:.1f} p/m2)"
+            src = zm.get("count_source", "yolo")
+            z_label = f"{zone.name}: {zm['count']}p ({zm['density']:.1f} p/m2) [{src}]"
             cv2.putText(
                 annotated,
                 z_label,
@@ -329,6 +337,13 @@ class VideoFileSource(SourceAdapter):
 
         self.camera_index = 0
 
+    def add_camera(self, config: Dict[str, Any]) -> CameraInstance:
+        """Dynamically appends a new camera instance to the video source."""
+        cam = CameraInstance(config, self.base_dir)
+        self.cameras.append(cam)
+        logger.info("VideoFileSource dynamically attached camera: %s (%s)", cam.cam_id, cam.name)
+        return cam
+
     def get_camera_jpeg(self, cam_id: str) -> Optional[bytes]:
         clean_target = cam_id.lower().replace("_", "-").replace(" ", "")
         for cam in self.cameras:
@@ -361,7 +376,17 @@ class VideoFileSource(SourceAdapter):
         for cam in self.cameras:
             if zone_id in cam.zone_metrics:
                 return cam.zone_metrics[zone_id]
-        return {"count": 0, "density": 0.0, "jam": 0.0, "surge": 0.0, "mean_flow": 0.0}
+        return {
+            "count": 0,
+            "density": 0.0,
+            "jam": 0.0,
+            "surge": 0.0,
+            "mean_flow": 0.0,
+            "yolo_count": 0,
+            "occlusion": 0.0,
+            "count_source": "yolo",
+            "confidence": 1.0,
+        }
 
     def read(self) -> Tuple[bool, Optional[np.ndarray], Optional[List[Tuple[float, float, float]]]]:
         if not self.cameras:
@@ -580,6 +605,54 @@ class ReplayEngine:
         self.incidents_path = Path(incidents_path)
         self.incidents_path.parent.mkdir(parents=True, exist_ok=True)
         self.latest_tick: Dict[str, Any] = {}
+        self.drill: Dict[str, Any] = {
+            "active": False,
+            "zone_id": "barricade_corridor",
+            "t0": 0.0,
+            "speed_mult": 1.0,
+        }
+
+    def start_drill(self, zone_id: str = "barricade_corridor", speed_mult: float = 1.0) -> None:
+        """Start a labeled training overlay. Live CV continues; risk math is overlaid."""
+        self.drill = {
+            "active": True,
+            "zone_id": zone_id,
+            "t0": time.time(),
+            "speed_mult": max(0.1, float(speed_mult)),
+        }
+        self.prev_levels[zone_id] = "green"
+        if zone_id in self.active_alerts:
+            del self.active_alerts[zone_id]
+        self.log_incident_event(
+            event_type="drill_start",
+            zone_id=zone_id,
+            zone_name=next((z.name for z in settings.zones if z.id == zone_id), zone_id),
+            payload={"speed_mult": self.drill["speed_mult"], "labeled": True},
+        )
+
+    def stop_drill(self) -> None:
+        zone_id = str(self.drill.get("zone_id") or "barricade_corridor")
+        was_active = bool(self.drill.get("active"))
+        self.drill["active"] = False
+        if zone_id in self.active_alerts:
+            del self.active_alerts[zone_id]
+        self.prev_levels[zone_id] = "green"
+        if was_active:
+            self.log_incident_event(
+                event_type="drill_end",
+                zone_id=zone_id,
+                zone_name=next((z.name for z in settings.zones if z.id == zone_id), zone_id),
+                payload={"labeled": True},
+            )
+
+    def _drill_overlay(self, zone_id: str, now: float) -> Optional[Tuple[float, float, float]]:
+        if not self.drill.get("active") or zone_id != self.drill.get("zone_id"):
+            return None
+        elapsed = (now - float(self.drill.get("t0") or now)) * float(self.drill.get("speed_mult") or 1.0)
+        metrics = drill_metrics(elapsed)
+        if metrics is None:
+            return None
+        return metrics
 
     def get_highest_risk_zone(self) -> Dict[str, Any]:
         """Returns the active zone with the highest risk (or highest density if risks are equal)."""
@@ -600,6 +673,54 @@ class ReplayEngine:
             return {"id": "barricade_corridor", "name": "Barricade Corridor", "density": 4.6, "risk": 87.0}
 
         return max(zones, key=lambda z: (float(z.get("risk", 0.0)), float(z.get("density", 0.0))))
+
+    def add_camera_source(
+        self,
+        video_path: str,
+        cam_id: str,
+        cam_name: str,
+        zone_id: str,
+        zone_name: str,
+        area_m2: float = 40.0,
+    ):
+        """Dynamically attaches a new video camera stream and zone to the active engine."""
+        # 1. Register zone in settings.zones if not present
+        if not any(z.id == zone_id for z in settings.zones):
+            new_zone = Zone(
+                id=zone_id,
+                name=zone_name,
+                points=[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]],
+                area_m2=area_m2,
+                critical_threshold=4.0,
+            )
+            settings.zones.append(new_zone)
+
+        if zone_id not in self.density_history:
+            self.density_history[zone_id] = deque(maxlen=75)
+            self.prev_levels[zone_id] = "green"
+
+        # 2. Ensure engine.source is VideoFileSource
+        if not isinstance(self.source, VideoFileSource):
+            self.source = VideoFileSource()
+
+        # 3. Create camera config and attach to source
+        cam_config = {
+            "cam_id": cam_id.upper(),
+            "name": cam_name,
+            "source": video_path,
+            "crop": [0.0, 0.0, 1.0, 1.0],
+            "zones": [
+                {
+                    "zone_id": zone_id,
+                    "name": zone_name,
+                    "polygon": [[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]],
+                    "area_m2": area_m2,
+                }
+            ],
+        }
+        cam = self.source.add_camera(cam_config)
+        logger.info("ReplayEngine successfully registered new camera: %s (%s)", cam_id, cam_name)
+        return cam
 
     def get_camera_jpeg(self, cam_id: str) -> Optional[bytes]:
         """Returns the latest annotated JPEG frame for a specific camera ID."""

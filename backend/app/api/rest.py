@@ -4,7 +4,7 @@ import logging
 import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, HTTPException, Query, Request, UploadFile, File
 
 from app.config import settings
 
@@ -378,3 +378,94 @@ async def get_alert_audio(p: str = ""):
             return FileResponse(str(candidate), media_type=media)
 
     raise HTTPException(status_code=404, detail="Audio unavailable")
+
+
+@router.post("/api/cameras/upload")
+async def upload_camera_source(file: UploadFile = File(...)):
+    """Uploads a crowd video file, saves to sample_data/, and dynamically registers a new camera."""
+    engine = get_engine()
+    if not engine:
+        raise HTTPException(status_code=503, detail="Engine not running")
+
+    # 1. Save uploaded file to sample_data/
+    sample_dir = Path(__file__).resolve().parent.parent.parent.parent / "sample_data"
+    sample_dir.mkdir(parents=True, exist_ok=True)
+
+    clean_filename = file.filename or "uploaded_feed.mp4"
+    clean_stem = Path(clean_filename).stem.replace(" ", "_").lower()
+    target_filename = f"{clean_stem}.mp4"
+    target_path = sample_dir / target_filename
+
+    with open(target_path, "wb") as f:
+        content = await file.read()
+        f.write(content)
+
+    # 2. Determine next camera ID & name
+    cameras_file = Path(__file__).resolve().parent.parent.parent.parent / "backend" / "cameras.json"
+    cameras_list = []
+    if cameras_file.exists():
+        try:
+            with open(cameras_file, "r", encoding="utf-8") as f:
+                cameras_list = json.load(f)
+        except Exception:
+            cameras_list = []
+
+    cam_number = len(cameras_list) + 1
+    cam_id = f"cam-{cam_number:02d}"
+    cam_name = f"CAM-{cam_number:02d} · {clean_stem.replace('_', ' ').title()}"
+    zone_id = f"zone_{cam_id.replace('-', '_')}"
+    zone_name = f"{clean_stem.replace('_', ' ').title()} Gate"
+    area_m2 = float(os.environ.get("NEW_CAMERA_AREA_M2", 40.0))
+
+    # 3. Create camera config
+    cam_config = {
+        "cam_id": cam_id.upper(),
+        "name": cam_name,
+        "source": f"sample_data/{target_filename}",
+        "crop": [0.0, 0.0, 1.0, 1.0],
+        "zones": [
+            {
+                "zone_id": zone_id,
+                "name": zone_name,
+                "polygon": [[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]],
+                "area_m2": area_m2,
+            }
+        ],
+    }
+
+    # 4. Save to cameras.json
+    cameras_list.append(cam_config)
+    try:
+        with open(cameras_file, "w", encoding="utf-8") as f:
+            json.dump(cameras_list, f, indent=2)
+    except Exception as e:
+        logger.warning("Could not persist to cameras.json: %s", e)
+
+    # 5. Dynamically register in running engine immediately — no restart
+    engine.add_camera_source(
+        video_path=str(target_path),
+        cam_id=cam_id.upper(),
+        cam_name=cam_name,
+        zone_id=zone_id,
+        zone_name=zone_name,
+        area_m2=area_m2,
+    )
+
+    logger.info("Successfully uploaded and attached new camera %s (%s)", cam_id, target_path)
+
+    return {
+        "status": "success",
+        "cam_id": cam_id.lower(),
+        "name": cam_name,
+        "zone_id": zone_id,
+        "zone_name": zone_name,
+        "area_m2": area_m2,
+        "camera": {
+            "id": cam_id.lower(),
+            "name": cam_name,
+            "zone_id": zone_id,
+            "zone_name": zone_name,
+            "area_m2": area_m2,
+        },
+        "message": "Camera added — analyzing",
+    }

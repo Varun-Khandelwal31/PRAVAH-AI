@@ -391,19 +391,72 @@ export const LiveCommandCenter: React.FC<LiveCommandCenterProps> = ({
   }, [sourceMode, zones, zoneDataMap]);
 
   const displayedCameras = useMemo(() => {
-    if (!isWebcamActive) return CAMERAS;
-    const webcamCam: CCTVCamera = {
-      id: 'cam-live',
-      zoneId: 'live_hall',
-      zoneIndex: 9,
-      label: 'CAM-LIVE',
-      name: 'Live Hall',
-      image: '/images/cctv_1.jpg',
-      defaultDensity: 0.0,
-      defaultRisk: 5,
-    };
-    return [...CAMERAS, webcamCam];
-  }, [isWebcamActive]);
+    const list: CCTVCamera[] = [...CAMERAS];
+    if (isWebcamActive) {
+      list.push({
+        id: 'cam-live',
+        zoneId: 'live_hall',
+        zoneIndex: 9,
+        label: 'CAM-LIVE',
+        name: 'Live Hall',
+        image: '/images/cctv_1.jpg',
+        defaultDensity: 0.0,
+        defaultRisk: 5,
+      });
+    }
+
+    // Dynamic cameras registered through upload or backend config
+    if (camerasStatus) {
+      Object.keys(camerasStatus).forEach((camId) => {
+        const idLower = camId.toLowerCase();
+        if (!list.some((c) => c.id.toLowerCase() === idLower)) {
+          const matchingZone = zones.find(
+            (z) =>
+              z.id.toLowerCase() === idLower.replace('cam-', 'zone_cam_') ||
+              z.id.toLowerCase().includes(idLower.replace('-', '_')) ||
+              z.id.toLowerCase().includes(idLower)
+          );
+          const zoneId = matchingZone ? matchingZone.id : `zone_${idLower.replace('-', '_')}`;
+          const zoneName = matchingZone ? matchingZone.name : `Cam ${idLower.toUpperCase()}`;
+          list.push({
+            id: idLower,
+            zoneId: zoneId,
+            zoneIndex: list.length + 1,
+            label: idLower.toUpperCase(),
+            name: zoneName,
+            image: '/images/cctv_1.jpg',
+            defaultDensity: 0.0,
+            defaultRisk: 10,
+          });
+        }
+      });
+    }
+
+    // Also check zones for any camera zones not yet in list
+    zones.forEach((z) => {
+      if (
+        (z.id.startsWith('zone_cam_') || z.id.startsWith('zone_cam-') || z.id.startsWith('cam-')) &&
+        z.id !== 'live_hall'
+      ) {
+        const rawCamId = z.id.replace('zone_', '');
+        const camId = rawCamId.includes('_') ? rawCamId.replace('_', '-') : rawCamId;
+        if (!list.some((c) => c.id.toLowerCase() === camId.toLowerCase())) {
+          list.push({
+            id: camId.toLowerCase(),
+            zoneId: z.id,
+            zoneIndex: list.length + 1,
+            label: camId.toUpperCase(),
+            name: z.name || camId.toUpperCase(),
+            image: '/images/cctv_1.jpg',
+            defaultDensity: 0.0,
+            defaultRisk: 10,
+          });
+        }
+      }
+    });
+
+    return list;
+  }, [isWebcamActive, camerasStatus, zones]);
 
   // Real Camera Delivery Tracking: green = frames in last 5s, red = stalled
   const getCameraOnline = useCallback(
@@ -485,6 +538,39 @@ export const LiveCommandCenter: React.FC<LiveCommandCenterProps> = ({
       await fetch('/api/demo/clear', { method: 'POST' });
     } catch {
       // fallback
+    }
+  };
+
+  // Video feed upload state for adding new dynamic cameras
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [uploadToast, setUploadToast] = useState<string | null>(null);
+  const topFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleTopVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingVideo(true);
+    setUploadToast('Uploading video feed...');
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/cameras/upload', {
+        method: 'POST',
+        body: fd,
+      });
+      if (res.ok) {
+        setUploadToast('Camera added — analyzing');
+        setTimeout(() => setUploadToast(null), 5000);
+      } else {
+        setUploadToast('Upload failed');
+        setTimeout(() => setUploadToast(null), 3000);
+      }
+    } catch {
+      setUploadToast('Upload error');
+      setTimeout(() => setUploadToast(null), 3000);
+    } finally {
+      setIsUploadingVideo(false);
+      if (topFileInputRef.current) topFileInputRef.current.value = '';
     }
   };
 
@@ -1099,8 +1185,34 @@ export const LiveCommandCenter: React.FC<LiveCommandCenterProps> = ({
             <span>📱</span>
             <span>DISPATCH MARSHAL (WhatsApp/SMS)</span>
           </button>
+
+          {/* 6. Upload Video (Add Camera Source flow - always active in LIVE VIDEO & all modes) */}
+          <input
+            type="file"
+            ref={topFileInputRef}
+            onChange={handleTopVideoUpload}
+            accept="video/*"
+            className="hidden"
+          />
+          <button
+            onClick={() => topFileInputRef.current?.click()}
+            disabled={isUploadingVideo}
+            className="px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all shadow-md bg-cyan-950/90 hover:bg-cyan-900 text-cyan-300 border border-cyan-600/70 hover:scale-105 active:scale-95"
+            title="Upload crowd video file to dynamically add a new CCTV camera source without restart"
+          >
+            <span>{isUploadingVideo ? '⏳' : '＋'}</span>
+            <span>{isUploadingVideo ? 'UPLOADING...' : 'UPLOAD VIDEO'}</span>
+          </button>
         </div>
       </div>
+
+      {/* Camera Added Toast Notification */}
+      {uploadToast && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-cyan-950/95 border border-cyan-400 text-cyan-200 shadow-2xl backdrop-blur-md font-mono text-xs animate-bounce">
+          <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
+          <span className="font-bold">{uploadToast}</span>
+        </div>
+      )}
 
       {/* Subtle Drill Watermark Overlay (top-right, amber, subtle) */}
       {isTrainingMode && isEscalating && (
@@ -1537,6 +1649,77 @@ export const LiveCommandCenter: React.FC<LiveCommandCenterProps> = ({
                   </div>
                 );
               })()}
+
+              {/* Dynamically Added Camera Zones (e.g. Uploaded Video Feeds) */}
+              {zones
+                .filter(
+                  (z) =>
+                    !MAP_ZONES.some((mz) => mz.id === z.id) &&
+                    z.id !== 'live_hall'
+                )
+                .map((dz) => {
+                  const liveDensity = getZoneDensity(dz.id, 0.0);
+                  const liveRisk = getZoneRisk(dz.id, 5);
+                  const badge = getRiskBadge(liveRisk);
+                  const isSelected = selectedZoneId === dz.id;
+                  const isCriticalRow = liveRisk >= 75;
+                  const camLabel = dz.id.replace('zone_', '').replace('_', '-').toUpperCase();
+
+                  return (
+                    <div
+                      key={`zone-dynamic-${dz.id}`}
+                      onClick={() => onSelectZone(dz.id)}
+                      className={`cursor-pointer px-2.5 py-1.5 rounded-lg border transition-all mt-0.5 ${
+                        isCriticalRow
+                          ? 'bg-rose-950/50 border-rose-500/90 shadow-[0_0_12px_rgba(244,63,94,0.4)]'
+                          : isSelected
+                          ? 'bg-cyan-950/80 border-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.4)]'
+                          : 'bg-gradient-to-r from-teal-950/40 via-slate-900/60 to-slate-900/40 border-teal-500/70 hover:border-teal-400 shadow-[0_0_10px_rgba(20,184,166,0.2)]'
+                      }`}
+                    >
+                      {/* Top Row: Zone Name + Live Indicator + Risk Badge */}
+                      <div className="flex items-center justify-between text-[11px] mb-1">
+                        <div className="flex items-center gap-1.5 font-medium text-teal-200 truncate">
+                          <span className="relative flex h-2 w-2 flex-shrink-0">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
+                          </span>
+                          <span className="font-bold text-teal-300 truncate">
+                            {dz.name}
+                          </span>
+                          <span className="text-[9px] font-mono bg-teal-900/60 text-teal-200 px-1 py-0.2 rounded border border-teal-700/50">
+                            {camLabel}
+                          </span>
+                          <span className="font-mono text-slate-200">
+                            {liveDensity.toFixed(1)} p/m²
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-[10px] text-teal-300 font-bold">
+                            {liveRisk}/100
+                          </span>
+                          <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold font-mono border ${badge.color}`}>
+                            {badge.label}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Risk Progress Bar */}
+                      <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ${
+                            isCriticalRow
+                              ? 'bg-rose-500 shadow-[0_0_8px_#f43f5e]'
+                              : liveRisk >= 65
+                              ? 'bg-amber-400'
+                              : 'bg-teal-400 shadow-[0_0_8px_#14b8a6]'
+                          }`}
+                          style={{ width: `${Math.min(100, Math.max(5, liveRisk))}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
             </div>
           </div>
 

@@ -3,6 +3,7 @@ import type { ZoneConfig, ZoneTickData } from './components/ZoneMap';
 import type { AlertData } from './components/AlertPanel';
 import { LandingPage } from './components/LandingPage';
 import LiveCommandCenter from './components/LiveCommandCenter';
+import { DemoControls } from './components/DemoControls';
 
 // Default 8-zone configuration fallback if /api/config is unreachable
 const DEFAULT_ZONES: ZoneConfig[] = [
@@ -140,6 +141,27 @@ export function App() {
     });
     setZoneDataMap(newMap);
 
+    // Auto-discover dynamically added zones from ticks (e.g. from uploaded video sources)
+    setZones((prevZones) => {
+      const existingIds = new Set(prevZones.map((pz) => pz.id));
+      const newlyDiscovered: ZoneConfig[] = [];
+      tick.zones.forEach((tz: any) => {
+        if (!existingIds.has(tz.id)) {
+          newlyDiscovered.push({
+            id: tz.id,
+            name: tz.name || tz.id,
+            area_m2: tz.area_m2 || 40.0,
+            critical_threshold: 4.0,
+            points: [[0, 0], [1, 0], [1, 1], [0, 1]],
+          });
+        }
+      });
+      if (newlyDiscovered.length > 0) {
+        return [...prevZones, ...newlyDiscovered];
+      }
+      return prevZones;
+    });
+
     if (tick.alerts && Array.isArray(tick.alerts)) {
       setAlerts(tick.alerts);
     } else {
@@ -270,20 +292,47 @@ export function App() {
 
   // Exact reference layout Live Command Center
   return (
-    <LiveCommandCenter
-      zones={zones}
-      zoneDataMap={zoneDataMap}
-      alerts={alerts}
-      selectedZoneId={selectedZoneId}
-      onSelectZone={setSelectedZoneId}
-      wsConnected={wsConnected}
-      sourceMode={sourceMode}
-      camerasStatus={camerasStatus}
-      onOpenLanding={() => {
-        window.location.hash = 'landing';
-        setViewMode('landing');
-      }}
-    />
+    <>
+      <LiveCommandCenter
+        zones={zones}
+        zoneDataMap={zoneDataMap}
+        alerts={alerts}
+        selectedZoneId={selectedZoneId}
+        onSelectZone={setSelectedZoneId}
+        wsConnected={wsConnected}
+        sourceMode={sourceMode}
+        camerasStatus={camerasStatus}
+        onOpenLanding={() => {
+          window.location.hash = 'landing';
+          setViewMode('landing');
+        }}
+      />
+      <DemoControls
+        sourceMode={sourceMode}
+        onCameraAdded={(camData) => {
+          if (camData?.camera) {
+            const c = camData.camera;
+            setZones((prev) => {
+              if (prev.some((z) => z.id === c.zone_id)) return prev;
+              return [
+                ...prev,
+                {
+                  id: c.zone_id,
+                  name: c.name,
+                  area_m2: c.area_m2 || 40.0,
+                  critical_threshold: 4.0,
+                  points: [[0, 0], [1, 0], [1, 1], [0, 1]],
+                },
+              ];
+            });
+            setCamerasStatus((prev) => ({
+              ...prev,
+              [c.id.toLowerCase()]: { online: true, last_seen_s: 0 },
+            }));
+          }
+        }}
+      />
+    </>
   );
 }
 
