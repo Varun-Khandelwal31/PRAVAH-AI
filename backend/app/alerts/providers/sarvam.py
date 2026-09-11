@@ -19,8 +19,8 @@ class SarvamProvider:
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key
 
-    async def synthesize(self, text_hindi: str, out_path: Path) -> Path:
-        """Synthesizes Hindi text to a WAV audio file via Sarvam AI API.
+    async def synthesize(self, text: str, out_path: Path, language_code: str = "hi-IN") -> Path:
+        """Synthesizes text to a WAV audio file via Sarvam AI API for any Indian language.
 
         Raises:
             ValueError: If API key is missing.
@@ -34,10 +34,13 @@ class SarvamProvider:
             "Content-Type": "application/json",
         }
 
-        # Contract verified with live Sarvam API on 2026-09-09:
+        # Normalize language code e.g. 'hi' -> 'hi-IN'
+        target_code = language_code if "-" in language_code else f"{language_code}-IN"
+
+        # Contract verified with live Sarvam API:
         payload = {
-            "text": text_hindi,
-            "target_language_code": "hi-IN",
+            "text": text,
+            "target_language_code": target_code,
             "speaker": "shreya",
             "model": "bulbul:v3",
         }

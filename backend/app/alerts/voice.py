@@ -30,10 +30,11 @@ class VoiceAlertResolver:
 
     async def synthesize(
         self,
-        text_hindi: str,
+        text: str,
         api_key_override: Optional[str] = None,
+        lang: str = "hi",
     ) -> Tuple[Optional[str], str]:
-        """Synthesizes Hindi text to audio file.
+        """Synthesizes text in any Indian language to an audio file.
 
         Returns:
             Tuple[Optional[str], str]: (audio_url, provider_tag)
@@ -42,10 +43,10 @@ class VoiceAlertResolver:
 
         Guarantees:
             - Never raises an exception above this module.
-            - Caches audio by text-hash so repeat alerts don't re-synthesize.
+            - Caches audio by lang+text-hash so repeat alerts don't re-synthesize.
             - Logs ONE warning on Sarvam failure and seamlessly falls back to edge-tts.
         """
-        text_hash = hashlib.sha256(text_hindi.encode("utf-8")).hexdigest()[:16]
+        text_hash = hashlib.sha256(f"{lang}:{text}".encode("utf-8")).hexdigest()[:16]
         sarvam_key = api_key_override if api_key_override is not None else settings.sarvam_api_key
 
         # 1. Attempt Primary: Sarvam AI if key is present
@@ -59,14 +60,14 @@ class VoiceAlertResolver:
 
             try:
                 provider = SarvamProvider(api_key=sarvam_key.strip())
-                await provider.synthesize(text_hindi, sarvam_path)
-                logger.info("Synthesized Hindi voice alert via Sarvam AI: %s", sarvam_path.name)
+                await provider.synthesize(text, sarvam_path, language_code=lang)
+                logger.info("Synthesized voice alert via Sarvam AI (%s): %s", lang, sarvam_path.name)
                 return f"/static/audio/{sarvam_path.name}", "via sarvam"
             except Exception as e:
                 # Log exactly ONE warning as required by spec
-                logger.warning("Sarvam unavailable, falling back to edge-tts: %s", e)
+                logger.warning("Sarvam unavailable for %s, falling back to edge-tts: %s", lang, e)
 
-        # 2. Fallback: Edge-TTS (offline-friendly, zero keys)
+        # 2. Fallback: Edge-TTS (offline-friendly, zero keys, Indian regional voices)
         edge_path = self.audio_dir / f"{text_hash}_edge.mp3"
 
         # Check cache
@@ -75,13 +76,13 @@ class VoiceAlertResolver:
             return f"/static/audio/{edge_path.name}", "via edge-tts"
 
         try:
-            edge_provider = EdgeProvider(voice="hi-IN-SwaraNeural")
-            await edge_provider.synthesize(text_hindi, edge_path)
-            logger.info("Synthesized Hindi voice alert via edge-tts: %s", edge_path.name)
+            edge_provider = EdgeProvider(lang=lang)
+            await edge_provider.synthesize(text, edge_path)
+            logger.info("Synthesized voice alert via edge-tts (%s): %s", lang, edge_path.name)
             return f"/static/audio/{edge_path.name}", "via edge-tts"
         except Exception as e:
             # Voice failures must NEVER raise above this module
-            logger.error("All voice providers failed for text '%s': %s", text_hindi[:30], e)
+            logger.error("All voice providers failed for text '%s': %s", text[:30], e)
             return None, "via fallback-unavailable"
 
 
@@ -89,6 +90,6 @@ class VoiceAlertResolver:
 voice_resolver = VoiceAlertResolver()
 
 
-async def generate_voice_alert(text_hindi: str) -> Tuple[Optional[str], str]:
+async def generate_voice_alert(text: str, lang: str = "hi") -> Tuple[Optional[str], str]:
     """Top-level helper function for voice alert generation."""
-    return await voice_resolver.synthesize(text_hindi)
+    return await voice_resolver.synthesize(text, lang=lang)

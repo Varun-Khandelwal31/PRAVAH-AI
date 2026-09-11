@@ -139,23 +139,95 @@ async def trigger_demo_clear():
     }
 
 
-ZONE_HINDI_NAMES = {
-    "north_entry": "उत्तरी प्रवेश द्वार (नॉर्थ एंट्री)",
-    "ticket_queue": "टिकट कतार",
-    "barricade_corridor": "बैरिकेड कॉरिडोर",
-    "side_passage": "पार्श्व मार्ग (साइड पैसेज)",
-    "east_wing": "पूर्वी विंग (ईस्ट विंग)",
-    "main_concourse": "मुख्य प्रांगण (मेन कॉनकोर्स)",
-    "gate_2_overflow": "गेट 2 ओवरफ्लो",
-    "exit_lane": "निकास मार्ग",
-    "live_hall": "लाइव हॉल",
+LOCALIZED_ALERTS = {
+    "hi": {
+        "lang_name": "हिंदी (Hindi · Maha Kumbh / Kashi)",
+        "zone_names": {
+            "north_entry": "उत्तरी प्रवेश द्वार",
+            "ticket_queue": "टिकट कतार",
+            "barricade_corridor": "बैरिकेड कॉरिडोर (ज़ोन 3)",
+            "side_passage": "पार्श्व मार्ग",
+            "east_wing": "पूर्वी विंग",
+            "main_concourse": "मुख्य प्रांगण",
+            "gate_2_overflow": "गेट 2 ओवरफ्लो",
+            "exit_lane": "निकास मार्ग",
+            "live_hall": "लाइव हॉल",
+        },
+        "template": "कृपया ध्यान दें, {zone} में भीड़ खतरनाक स्तर पर पहुँच रही है। गेट 2 खोलें, भीड़ को साइड पैसेज मोड़ें, दो मार्शल तुरंत भेजें।",
+    },
+    "te": {
+        "lang_name": "తెలుగు (Telugu · Tirupati Balaji)",
+        "zone_names": {
+            "north_entry": "ఉత్తర ప్రవేశ ద్వారం",
+            "ticket_queue": "టికెట్ క్యూ",
+            "barricade_corridor": "బారికేడ్ కారిడార్ (జోన్ 3)",
+            "side_passage": "సైడ్ పాసేజ్",
+            "east_wing": "తూర్పు విభాగం",
+            "main_concourse": "ప్రధాన ప్రాంగణం",
+            "gate_2_overflow": "గేట్ 2 ఓవర్‌ఫ్లో",
+            "exit_lane": "నిష్క్రమణ దారి",
+            "live_hall": "లైవ్ హాల్",
+        },
+        "template": "దయచేసి గమనించండి, {zone} వద్ద రద్దీ ప్రమాదకర స్థాయికి చేరుకుంది. గేట్ 2 తెరవండి, సైడ్ పాసేజ్ ద్వారా దారి మళ్లించండి, ఇద్దరు మార్షల్స్‌ను పంపండి.",
+    },
+    "ta": {
+        "lang_name": "தமிழ் (Tamil · Madurai Meenakshi)",
+        "zone_names": {
+            "north_entry": "வடக்கு நுழைவாயில்",
+            "ticket_queue": "டிக்கெட் வரிசை",
+            "barricade_corridor": "தடுப்பு நடைபாதை (மண்டலம் 3)",
+            "side_passage": "பக்கவாட்டு பாதை",
+            "east_wing": "கிழக்கு பிரிவு",
+            "main_concourse": "மைய மண்டபம்",
+            "gate_2_overflow": "கேட் 2 வழிதல்",
+            "exit_lane": "வெளியேறும் பாதை",
+            "live_hall": "நேரலை கூடம்",
+        },
+        "template": "கவனிக்கவும், {zone} பகுதியில் கூட்டம் ஆபத்தான நிலையை எட்டியுள்ளது. கேட் 2 ஐத் திறக்கவும், மாற்றுப் பாதையில் திருப்பிவிடவும், இரண்டு மார்ஷல்களை அனுப்பவும்.",
+    },
+    "bn": {
+        "lang_name": "বাংলা (Bengali · Kalighat / Gangasagar)",
+        "zone_names": {
+            "north_entry": "উত্তর প্রবেশদ্বার",
+            "ticket_queue": "টিকিট লাইন",
+            "barricade_corridor": "ব্যারিকেড করিডোর (জোন ৩)",
+            "side_passage": "পার্শ্ব পথ",
+            "east_wing": "পূর্ব উইং",
+            "main_concourse": "প্রধান চত্বর",
+            "gate_2_overflow": "গেট ২ ওভারফ্লো",
+            "exit_lane": "প্রস্থান পথ",
+            "live_hall": "লাইভ হল",
+        },
+        "template": "অনুগ্রহ করে মনোযোগ দিন, {zone} এ ভিড় বিপজ্জনক মাত্রায় পৌঁছেছে। গেট ২ খুলুন, সাইড প্যাসেজ দিয়ে ডাইভার্ট করুন, দুজন মার্শাল পাঠান।",
+    },
+    "en": {
+        "lang_name": "English (National Standard)",
+        "zone_names": {
+            "north_entry": "North Entry",
+            "ticket_queue": "Ticket Queue",
+            "barricade_corridor": "Barricade Corridor (Zone 3)",
+            "side_passage": "Side Passage",
+            "east_wing": "East Wing",
+            "main_concourse": "Main Concourse",
+            "gate_2_overflow": "Gate 2 Overflow",
+            "exit_lane": "Exit Lane",
+            "live_hall": "Live Hall",
+        },
+        "template": "Attention please, crowd density in {zone} has reached critical levels. Open Gate 2, divert flow via Side Passage, and dispatch two marshals immediately.",
+    },
 }
+
+ZONE_HINDI_NAMES = LOCALIZED_ALERTS["hi"]["zone_names"]
 
 
 @router.post("/api/demo/trigger-alert")
 @router.post("/demo/trigger-alert")
-async def trigger_demo_alert(request: Request, zone_id: Optional[str] = Query(None)):
-    """Synthesizes and emits a live Hindi voice alert for the active highest-risk zone across all modes."""
+async def trigger_demo_alert(
+    request: Request,
+    zone_id: Optional[str] = Query(None),
+    lang: str = Query("hi"),
+):
+    """Synthesizes and emits a live regional Indian voice alert for the active highest-risk zone."""
     from app.alerts.voice import generate_voice_alert
 
     engine = _engine or getattr(request.app.state, "engine", None)
@@ -178,18 +250,103 @@ async def trigger_demo_alert(request: Request, zone_id: Optional[str] = Query(No
         target_zone_id = "barricade_corridor"
         target_zone_name = "Barricade Corridor"
 
-    hindi_zone = ZONE_HINDI_NAMES.get(target_zone_id, target_zone_name)
-    hindi_text = f"कृपया ध्यान दें, {hindi_zone} में भीड़ अत्यधिक बढ़ गई है। कृपया वैकल्पिक मार्ग का उपयोग करें और तुरंत सुरक्षित क्षेत्र की ओर बढ़ें।"
-    audio_url, provider = await generate_voice_alert(hindi_text)
+    lang_data = LOCALIZED_ALERTS.get(lang, LOCALIZED_ALERTS["hi"])
+    loc_zone = lang_data["zone_names"].get(target_zone_id, target_zone_name)
+    alert_text = lang_data["template"].format(zone=loc_zone)
+
+    audio_url, provider = await generate_voice_alert(alert_text, lang=lang)
 
     return {
         "status": "alert_triggered",
         "zone": target_zone_name,
         "zone_id": target_zone_id,
-        "text": hindi_text,
+        "lang": lang,
+        "lang_name": lang_data["lang_name"],
+        "text": alert_text,
         "audio_url": audio_url,
         "provider": provider,
     }
+
+
+@router.post("/api/alerts/dispatch-marshal")
+async def dispatch_marshal_alert(
+    request: Request,
+    zone_id: Optional[str] = Query(None),
+    lang: str = Query("hi"),
+    phone: str = Query("+91 98112 40192"),
+    marshal_name: str = Query("Inspector Rajesh Sharma · Sector 3"),
+):
+    """Dispatches emergency tactical alert directly to on-ground marshal over simulated WhatsApp & SMS bridge."""
+    from app.alerts.voice import generate_voice_alert
+
+    engine = _engine or getattr(request.app.state, "engine", None)
+    target_zone_id = zone_id or "barricade_corridor"
+    target_zone_name = "Barricade Corridor"
+    for z in settings.zones:
+        if z.id == target_zone_id:
+            target_zone_name = z.name
+            break
+
+    lang_data = LOCALIZED_ALERTS.get(lang, LOCALIZED_ALERTS["hi"])
+    loc_zone = lang_data["zone_names"].get(target_zone_id, target_zone_name)
+    alert_text = lang_data["template"].format(zone=loc_zone)
+    audio_url, provider = await generate_voice_alert(alert_text, lang=lang)
+
+    actions = [
+        "1. Open Gate 2 for emergency overflow",
+        "2. Divert inward queue via Side Passage",
+        "3. Dispatch 2 quick-reaction marshals",
+    ]
+
+    dispatch_record = {
+        "dispatch_id": f"DSP-{hash(alert_text) % 100000:05d}",
+        "channel": "WhatsApp Business API & C-DoT National SMS Gateway",
+        "marshal_name": marshal_name,
+        "phone": phone,
+        "zone_id": target_zone_id,
+        "zone_name": target_zone_name,
+        "status": "DELIVERED",
+        "delivery_latency_ms": 320,
+        "actions": actions,
+        "alert_text": alert_text,
+        "audio_url": audio_url,
+        "provider": provider,
+    }
+
+    if engine and hasattr(engine, "log_incident_event"):
+        engine.log_incident_event(
+            event_type="marshal_dispatch",
+            zone_id=target_zone_id,
+            zone_name=target_zone_name,
+            payload=dispatch_record,
+        )
+
+    return dispatch_record
+
+
+@router.post("/api/alerts/acknowledge-dispatch")
+async def acknowledge_marshal_dispatch(
+    zone_id: str = Query("barricade_corridor"),
+    marshal_name: str = Query("Inspector Rajesh Sharma"),
+    note: str = Query("Gate 2 opened, crowd flow diverting safely into Side Passage."),
+):
+    """Simulates on-ground marshal physical acknowledgment back to PravahAI command center."""
+    engine = get_engine()
+    ack_payload = {
+        "marshal_name": marshal_name,
+        "status": "ACKNOWLEDGED_PHYSICALLY",
+        "note": note,
+    }
+
+    if engine and hasattr(engine, "log_incident_event"):
+        engine.log_incident_event(
+            event_type="marshal_ack",
+            zone_id=zone_id,
+            zone_name="Barricade Corridor",
+            payload=ack_payload,
+        )
+
+    return {"status": "success", "ack": ack_payload}
 
 
 @router.get("/api/alert/audio")
