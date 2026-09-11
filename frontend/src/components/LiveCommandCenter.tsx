@@ -215,14 +215,22 @@ const LiveCCTVTile: React.FC<{
       {/* Top Banner: Timestamp & LIVE Tag */}
       <div className="relative z-10 flex items-center justify-between p-1.5 bg-black/40 backdrop-blur-[2px]">
         <div className="flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
-          <span className="font-mono text-[8px] text-slate-300 font-bold">
-            {timeStr}
+          <span className={`w-1.5 h-1.5 rounded-full ${cam.id === 'cam-live' ? 'bg-cyan-400 animate-pulse' : 'bg-rose-500 animate-ping'}`} />
+          <span className={`font-mono text-[8px] font-bold ${cam.id === 'cam-live' ? 'text-cyan-300' : 'text-slate-300'}`}>
+            {cam.id === 'cam-live' ? 'CAM-LIVE' : timeStr}
           </span>
         </div>
-        <span className="bg-black/80 backdrop-blur-sm border border-emerald-500/50 text-emerald-400 text-[8px] font-mono font-black px-1.5 py-0.2 rounded">
-          LIVE
-        </span>
+        <div className="flex items-center gap-1">
+          {cam.id === 'cam-live' ? (
+            <span className="bg-cyan-950/90 backdrop-blur-sm border border-cyan-400/80 text-cyan-300 text-[8px] font-mono font-black px-1.5 py-0.2 rounded shadow-[0_0_6px_rgba(6,182,212,0.5)]">
+              WEBCAM
+            </span>
+          ) : (
+            <span className="bg-black/80 backdrop-blur-sm border border-emerald-500/50 text-emerald-400 text-[8px] font-mono font-black px-1.5 py-0.2 rounded">
+              LIVE
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Center Hover Action: Inspect AI Feed */}
@@ -293,6 +301,31 @@ export const LiveCommandCenter: React.FC<LiveCommandCenterProps> = ({
       return false;
     }
   });
+
+  // Dynamic Webcam detection & camera array with CAM-LIVE
+  const isWebcamActive = useMemo(() => {
+    return (
+      (sourceMode && sourceMode.toLowerCase().includes('webcam')) ||
+      zones.some((z) => z.id === 'live_hall') ||
+      Boolean(zoneDataMap['live_hall'])
+    );
+  }, [sourceMode, zones, zoneDataMap]);
+
+  const displayedCameras = useMemo(() => {
+    if (!isWebcamActive) return CAMERAS;
+    const webcamCam: CCTVCamera = {
+      id: 'cam-live',
+      zoneId: 'live_hall',
+      zoneIndex: 9,
+      label: 'CAM-LIVE',
+      name: 'Live Hall',
+      image: '/images/cctv_1.jpg',
+      defaultDensity: 0.0,
+      defaultRisk: 5,
+    };
+    return [...CAMERAS, webcamCam];
+  }, [isWebcamActive]);
+
   const [activeVoiceBroadcast, setActiveVoiceBroadcast] = useState<{
     playing: boolean;
     text: string;
@@ -895,13 +928,13 @@ export const LiveCommandCenter: React.FC<LiveCommandCenterProps> = ({
             </div>
             <span className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-700/30 px-2 py-0.5 rounded-full">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              6/6 Online
+              {displayedCameras.length}/{displayedCameras.length} Online
             </span>
           </div>
 
-          {/* 2x3 Video Feeds Grid with Active Tracking Physics */}
-          <div className="grid grid-cols-2 gap-2 flex-1">
-            {CAMERAS.map((cam) => {
+          {/* Video Feeds Grid with Active Tracking Physics */}
+          <div className="grid grid-cols-2 gap-2 flex-1 overflow-y-auto max-h-[640px] pr-1">
+            {displayedCameras.map((cam) => {
               const liveDensity = getZoneDensity(cam.zoneId, cam.defaultDensity);
               const isSelected = cam.zoneId === selectedZoneId;
 
@@ -1123,8 +1156,8 @@ export const LiveCommandCenter: React.FC<LiveCommandCenterProps> = ({
               </h2>
             </div>
 
-            {/* 8 Ranked Zones Rows */}
-            <div className="flex flex-col gap-1.5 flex-1 justify-between">
+            {/* 8 Ranked Zones Rows + Highlighted 9th Panel for Live Hall */}
+            <div className="flex flex-col gap-1.5 flex-1 justify-between overflow-y-auto max-h-[500px] pr-0.5">
               {MAP_ZONES.map((zone) => {
                 const liveDensity = getZoneDensity(zone.id, zone.defaultDensity);
                 const liveRisk = getZoneRisk(zone.id, zone.defaultRisk);
@@ -1182,6 +1215,70 @@ export const LiveCommandCenter: React.FC<LiveCommandCenterProps> = ({
                   </div>
                 );
               })}
+
+              {/* Highlighted 9th Panel: Live Hall (Webcam Proof Mode) */}
+              {isWebcamActive && (() => {
+                const liveDensity = getZoneDensity('live_hall', 0.0);
+                const liveRisk = getZoneRisk('live_hall', 5);
+                const badge = getRiskBadge(liveRisk);
+                const isSelected = selectedZoneId === 'live_hall';
+                const isCriticalRow = liveRisk >= 75;
+
+                return (
+                  <div
+                    key="zone-9-live-hall"
+                    onClick={() => onSelectZone('live_hall')}
+                    className={`cursor-pointer px-2.5 py-1.5 rounded-lg border transition-all mt-0.5 ${
+                      isCriticalRow
+                        ? 'bg-rose-950/50 border-rose-500/90 shadow-[0_0_12px_rgba(244,63,94,0.4)]'
+                        : isSelected
+                        ? 'bg-cyan-950/80 border-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.4)]'
+                        : 'bg-gradient-to-r from-cyan-950/40 via-slate-900/60 to-slate-900/40 border-cyan-500/70 hover:border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.2)]'
+                    }`}
+                  >
+                    {/* Top Row: Zone Name + Live Indicator + Risk Badge */}
+                    <div className="flex items-center justify-between text-[11px] mb-1">
+                      <div className="flex items-center gap-1.5 font-medium text-cyan-200 truncate">
+                        <span className="relative flex h-2 w-2 flex-shrink-0">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+                        </span>
+                        <span className="font-bold text-cyan-300">
+                          Zone 9 · Live Hall
+                        </span>
+                        <span className="text-[9px] font-mono bg-cyan-900/60 text-cyan-200 px-1 py-0.2 rounded border border-cyan-700/50">
+                          CAM-LIVE
+                        </span>
+                        <span className="font-mono text-slate-200">
+                          {liveDensity.toFixed(1)} p/m²
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-[10px] text-cyan-300 font-bold">
+                          {liveRisk}/100
+                        </span>
+                        <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold font-mono border ${badge.color}`}>
+                          {badge.label}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Risk Progress Bar */}
+                    <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${
+                          isCriticalRow
+                            ? 'bg-rose-500 shadow-[0_0_8px_#f43f5e]'
+                            : liveRisk >= 65
+                            ? 'bg-amber-400'
+                            : 'bg-cyan-400 shadow-[0_0_8px_#06b6d4]'
+                        }`}
+                        style={{ width: `${Math.min(100, Math.max(5, liveRisk))}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
 
@@ -1639,6 +1736,29 @@ export const LiveCommandCenter: React.FC<LiveCommandCenterProps> = ({
           </div>
         </div>
       )}
+      {/* Device Warning Floating Toast (e.g. CAM-LIVE busy/disconnected) */}
+      {alerts
+        .filter((a) => a.type === 'device_error' || a.id === 'cam_live_error' || a.id?.includes('cam_live'))
+        .map((a) => (
+          <div
+            key={a.id}
+            className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-amber-950/95 border border-amber-500/90 text-amber-200 px-4 py-3 rounded-xl shadow-2xl backdrop-blur-md font-mono text-xs max-w-sm animate-pulse"
+          >
+            <div className="w-8 h-8 rounded-lg bg-amber-900/60 border border-amber-500/50 flex items-center justify-center text-amber-400 flex-shrink-0">
+              <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+              </svg>
+            </div>
+            <div>
+              <div className="font-bold text-amber-300 uppercase tracking-wider text-[11px]">
+                Camera Device Warning
+              </div>
+              <div className="text-[10px] text-amber-200/80 leading-snug">
+                {a.message || 'CAM-LIVE webcam is busy or disconnected. Video sources unaffected.'}
+              </div>
+            </div>
+          </div>
+        ))}
     </div>
   );
 };

@@ -13,6 +13,8 @@ export interface AlertData {
   audio_url?: string | null;
   via?: string;
   provider?: string;
+  type?: string;
+  message?: string;
 }
 
 export interface IncidentRecord {

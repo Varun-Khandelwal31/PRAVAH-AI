@@ -8,7 +8,7 @@ interface FeedGridProps {
   onSelectZone?: (id: string) => void;
 }
 
-const CAMERAS = [
+const BASE_CAMERAS = [
   { id: 'cam-01', zoneId: 'north_entry', label: 'CAM-01', name: 'North Entry' },
   { id: 'cam-02', zoneId: 'ticket_queue', label: 'CAM-02', name: 'Ticket Queue' },
   { id: 'cam-03', zoneId: 'barricade_corridor', label: 'CAM-03', name: 'Barricade Corridor' },
@@ -23,7 +23,16 @@ export const FeedGrid: React.FC<FeedGridProps> = ({
   selectedZoneId,
   onSelectZone,
 }) => {
-  const isVideoMode = sourceMode === 'video' || sourceMode === 'webcam';
+  const isVideoMode = sourceMode.includes('video') || sourceMode.includes('webcam');
+  const isWebcam = sourceMode.includes('webcam') || Boolean(zoneDataMap['live_hall']);
+
+  const cameras = React.useMemo(() => {
+    if (!isWebcam) return BASE_CAMERAS;
+    return [
+      ...BASE_CAMERAS,
+      { id: 'cam-live', zoneId: 'live_hall', label: 'CAM-LIVE', name: 'Live Hall' },
+    ];
+  }, [isWebcam]);
 
   return (
     <div className="bg-[#0D1322]/90 backdrop-blur-md border border-cyan-950/60 rounded-xl p-4 flex flex-col shadow-xl shadow-cyan-950/20">
@@ -36,13 +45,13 @@ export const FeedGrid: React.FC<FeedGridProps> = ({
         </h3>
         <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-          6 CHANNELS ONLINE
+          {cameras.length} CHANNELS ONLINE
         </span>
       </div>
 
-      {/* 2x3 Grid */}
+      {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {CAMERAS.map((cam) => {
+        {cameras.map((cam) => {
           const data = zoneDataMap[cam.zoneId];
           const density = data?.density ?? 0.0;
           const level = data?.level ?? 'green';
@@ -94,10 +103,10 @@ export const FeedGrid: React.FC<FeedGridProps> = ({
 
               {/* Feed Content Area */}
               <div className="h-32 relative bg-black/90 flex items-center justify-center overflow-hidden">
-                {isVideoMode && isDangerZone ? (
+                {isVideoMode && (isDangerZone || cam.id === 'cam-live') ? (
                   // Live MJPEG backend feed stream for video/webcam mode
                   <img
-                    src="/api/feed.mjpeg"
+                    src={`/api/feed/${cam.id.toLowerCase()}.mjpeg`}
                     alt={cam.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {

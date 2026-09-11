@@ -47,10 +47,10 @@ async def benchmark_mode(mode_name: str, engine: ReplayEngine, num_ticks: int = 
 
 
 async def main():
-    os.environ["SOURCE_MODE"] = "video"
-    # Benchmark Video Mode with cameras.json across 60 ticks
+    mode = os.environ.get("SOURCE_MODE", "video,webcam")
+    os.environ["SOURCE_MODE"] = mode
     video_engine = ReplayEngine(source=VideoFileSource())
-    await benchmark_mode("Video Mode (6 Cameras Round-Robin + YOLOv8n + Farneback)", video_engine, num_ticks=60)
+    await benchmark_mode(f"Hybrid Mode ({mode} - Round-Robin + YOLOv8n + Farneback)", video_engine, num_ticks=40)
 
 
 if __name__ == "__main__":

@@ -31,6 +31,7 @@ ZONE_ALIAS_MAP = {
     "z6": "east_wing",
     "z7": "gate_2_overflow",
     "z8": "exit_lane",
+    "z9": "live_hall",
 }
 
 
@@ -68,26 +69,47 @@ class CameraInstance:
         self.name = config.get("name", self.cam_id)
         raw_source = config.get("source", "sample_data/crowd1.mp4")
 
-        # Resolve video file path
-        source_path = Path(raw_source)
-        if not source_path.is_absolute():
-            source_path = base_dir / source_path
+        self.is_webcam = False
+        self.is_connected = True
+        self.cap: Optional[cv2.VideoCapture] = None
+        self.source_path: Optional[Path] = None
 
-        # If designated file doesn't exist, search for existing files in sample_data
-        if not source_path.exists():
-            for candidate in [
-                base_dir / "sample_data" / "crowd1.mp4",
-                base_dir / "sample_data" / "crowd2.mp4",
-                base_dir / "sample_data" / "crowd.mp4",
-                Path("sample_data/crowd1.mp4"),
-                Path("sample_data/crowd2.mp4"),
-                Path("sample_data/crowd.mp4"),
-            ]:
-                if candidate.exists():
-                    source_path = candidate
-                    break
+        if raw_source == 0 or raw_source == "0" or str(raw_source).lower() in ("webcam", "live"):
+            self.is_webcam = True
+            try:
+                self.cap = cv2.VideoCapture(0)
+                if not self.cap or not self.cap.isOpened():
+                    self.is_connected = False
+                    logger.warning("Webcam CAM-LIVE (index 0) could not be opened initially.")
+                else:
+                    self.is_connected = True
+            except Exception as e:
+                self.is_connected = False
+                logger.warning("Error opening webcam index 0: %s", e)
+        else:
+            # Resolve video file path
+            source_path = Path(raw_source)
+            if not source_path.is_absolute():
+                source_path = base_dir / source_path
 
-        self.source_path = source_path
+            # If designated file doesn't exist, search for existing files in sample_data
+            if not source_path.exists():
+                for candidate in [
+                    base_dir / "sample_data" / "crowd1.mp4",
+                    base_dir / "sample_data" / "crowd2.mp4",
+                    base_dir / "sample_data" / "crowd.mp4",
+                    Path("sample_data/crowd1.mp4"),
+                    Path("sample_data/crowd2.mp4"),
+                    Path("sample_data/crowd.mp4"),
+                ]:
+                    if candidate.exists():
+                        source_path = candidate
+                        break
+
+            self.source_path = source_path
+            if self.source_path and self.source_path.exists():
+                self.cap = cv2.VideoCapture(str(self.source_path))
+
         self.crop = config.get("crop", None)  # Optional normalized [x, y, w, h]
 
         # Parse zones
@@ -102,10 +124,6 @@ class CameraInstance:
             poly = z.get("polygon", default_zone.points if default_zone else [[0.05, 0.05], [0.95, 0.05], [0.95, 0.95], [0.05, 0.95]])
             crit = float(z.get("critical_threshold", default_zone.critical_threshold if default_zone else 4.0))
             self.zones.append(Zone(id=canonical_id, name=name, points=poly, area_m2=area, critical_threshold=crit))
-
-        self.cap: Optional[cv2.VideoCapture] = None
-        if self.source_path.exists():
-            self.cap = cv2.VideoCapture(str(self.source_path))
 
         self.prev_frame: Optional[np.ndarray] = None
         self.latest_raw_frame: Optional[np.ndarray] = None
@@ -125,8 +143,32 @@ class CameraInstance:
         }
 
     def read_frame(self) -> Optional[np.ndarray]:
+        if self.is_webcam:
+            if not self.cap or not self.cap.isOpened():
+                try:
+                    self.cap = cv2.VideoCapture(0)
+                except Exception:
+                    self.cap = None
+                if not self.cap or not self.cap.isOpened():
+                    self.is_connected = False
+                    return None
+
+            try:
+                ret, frame = self.cap.read()
+            except Exception as e:
+                logger.warning("Exception reading webcam: %s", e)
+                ret, frame = False, None
+
+            if not ret or frame is None:
+                self.is_connected = False
+                return None
+
+            self.is_connected = True
+            self.latest_raw_frame = frame
+            return frame
+
         if not self.cap or not self.cap.isOpened():
-            if self.source_path.exists():
+            if self.source_path and self.source_path.exists():
                 self.cap = cv2.VideoCapture(str(self.source_path))
             if not self.cap or not self.cap.isOpened():
                 return None
@@ -187,9 +229,10 @@ class CameraInstance:
             )
 
         # Camera HUD overlay
+        hud_tag = "[LIVE WEBCAM]" if self.is_webcam else "[LIVE CV]"
         cv2.putText(
             annotated,
-            f"{self.cam_id} - {self.name} [LIVE CV]",
+            f"{self.cam_id} - {self.name} {hud_tag}",
             (12, 28),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.65,
@@ -250,13 +293,43 @@ class VideoFileSource(SourceAdapter):
                 "zones": [{"zone_id": "north_entry", "polygon": [[0.05, 0.05], [0.95, 0.05], [0.95, 0.95], [0.05, 0.95]], "area_m2": 35.0}],
             }, base_dir))
 
+        # Check if live webcam should be appended or used standalone
+        raw_mode = os.environ.get("SOURCE_MODE", getattr(settings, "source_mode", "video")).lower()
+        is_webcam = "webcam" in raw_mode or getattr(settings, "is_webcam_enabled", False)
+        is_video = "video" in raw_mode or getattr(settings, "is_video_enabled", True)
+
+        if is_webcam:
+            live_hall_area = float(os.environ.get("LIVE_HALL_AREA_M2", getattr(settings, "live_hall_area_m2", 30.0)))
+            live_cam = CameraInstance({
+                "cam_id": "CAM-LIVE",
+                "name": "Live Hall",
+                "source": 0,
+                "zones": [{
+                    "zone_id": "live_hall",
+                    "alias": "Z9",
+                    "name": "Live Hall",
+                    "polygon": [[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]],
+                    "area_m2": live_hall_area,
+                    "critical_threshold": 4.0,
+                }],
+            }, base_dir)
+
+            if not is_video or not self.cameras:
+                self.cameras = [live_cam]
+            else:
+                self.cameras.append(live_cam)
+            logger.info("Attached CAM-LIVE (Live Hall, %.1f m2) to active cameras (total %d)", live_hall_area, len(self.cameras))
+
         self.camera_index = 0
 
     def get_camera_jpeg(self, cam_id: str) -> Optional[bytes]:
         clean_target = cam_id.lower().replace("_", "-").replace(" ", "")
         for cam in self.cameras:
             c_id = cam.cam_id.lower().replace("_", "-").replace(" ", "")
-            if clean_target in (c_id, c_id.replace("cam-", ""), c_id.replace("cam-0", ""), f"cam-{clean_target}", f"cam-0{clean_target}"):
+            if (
+                clean_target in (c_id, c_id.replace("cam-", ""), c_id.replace("cam-0", ""), f"cam-{clean_target}", f"cam-0{clean_target}")
+                or (clean_target in ("cam-live", "live", "webcam", "live-hall") and cam.cam_id.upper() == "CAM-LIVE")
+            ):
                 if cam.latest_annotated_jpeg is not None:
                     return cam.latest_annotated_jpeg
                 if cam.latest_annotated_frame is not None:
@@ -264,6 +337,13 @@ class VideoFileSource(SourceAdapter):
                     if ret:
                         cam.latest_annotated_jpeg = jpeg.tobytes()
                         return cam.latest_annotated_jpeg
+                # If camera is webcam and currently offline, return a generated offline JPEG
+                if getattr(cam, "is_webcam", False):
+                    placeholder = np.zeros((360, 640, 3), dtype=np.uint8)
+                    cv2.putText(placeholder, "CAM-LIVE OFFLINE / BUSY", (80, 180), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 165, 255), 2)
+                    ret_enc, j_bytes = cv2.imencode(".jpg", placeholder)
+                    if ret_enc:
+                        return j_bytes.tobytes()
         # Fallback to first camera
         if self.cameras and self.cameras[0].latest_annotated_jpeg is not None:
             return self.cameras[0].latest_annotated_jpeg
@@ -389,8 +469,8 @@ class ReplayEngine:
         fps: float = 5.0,
     ):
         # Resolve Source Adapter from environment
-        mode = os.environ.get("SOURCE_MODE", "simulator").lower()
-        if mode == "timeline":
+        raw_mode = os.environ.get("SOURCE_MODE", getattr(settings, "source_mode", "simulator")).lower()
+        if "timeline" in raw_mode:
             fps = 1.0
 
         self.fps = fps
@@ -399,15 +479,26 @@ class ReplayEngine:
         self.running = False
         self.task: Optional[asyncio.Task] = None
 
+        # Ensure live_hall zone is dynamically registered in settings.zones if webcam is active
+        if "webcam" in raw_mode and not any(z.id == "live_hall" for z in settings.zones):
+            live_hall_area = float(os.environ.get("LIVE_HALL_AREA_M2", getattr(settings, "live_hall_area_m2", 30.0)))
+            settings.zones.append(
+                Zone(
+                    id="live_hall",
+                    name="Live Hall",
+                    points=[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]],
+                    area_m2=live_hall_area,
+                    critical_threshold=4.0,
+                )
+            )
+
         if source is not None:
             self.source = source
-        elif mode == "timeline":
+        elif "timeline" in raw_mode:
             self.source = TimelineSource()
-        elif mode == "video":
+        elif "video" in raw_mode or "webcam" in raw_mode:
             video_path = os.environ.get("SOURCE_VIDEO", None)
             self.source = VideoFileSource(single_video_path=video_path)
-        elif mode == "webcam":
-            self.source = WebcamSource(0)
         else:
             self.source = SimulatorSource()
 
@@ -457,7 +548,10 @@ class ReplayEngine:
 
     def _compute_trend_slope(self, zid: str, current_density: float, now: float) -> float:
         """Computes rate of density change in people/m^2/min using linear progression over window."""
-        history = self.density_history[zid]
+        history = self.density_history.get(zid)
+        if history is None:
+            history = deque(maxlen=75)
+            self.density_history[zid] = history
         history.append((now, current_density))
 
         if len(history) < 5:
@@ -532,41 +626,65 @@ class ReplayEngine:
             self.source.camera_index = (self.source.camera_index + 1) % len(self.source.cameras)
             frame = cam.read_frame()
             if frame is None:
-                await asyncio.sleep(self.dt)
-                return {"ts": now_iso, "zones": []}
+                if getattr(cam, "is_webcam", False):
+                    # Clean error handling: generate dark offline frame and emit amber toast alert
+                    placeholder = np.zeros((360, 640, 3), dtype=np.uint8)
+                    cv2.putText(placeholder, "CAM-LIVE OFFLINE / BUSY", (80, 180), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 165, 255), 2)
+                    ret_enc, j_bytes = cv2.imencode(".jpg", placeholder)
+                    if ret_enc:
+                        cam.latest_annotated_jpeg = j_bytes.tobytes()
+                    self.active_alerts["cam_live_error"] = {
+                        "id": "cam_live_error",
+                        "type": "device_error",
+                        "zone_id": "live_hall",
+                        "zone": "Live Hall",
+                        "message": "CAM-LIVE webcam is busy or disconnected. Video sources unaffected.",
+                        "level": "amber",
+                        "timestamp": now_iso,
+                    }
+                    if "live_hall" in cam.zone_metrics:
+                        cam.zone_metrics["live_hall"]["count"] = 0
+                        cam.zone_metrics["live_hall"]["density"] = 0.0
 
-            # Run YOLOv8n person detection (conf >= 0.35, input resized to 640 for speed)
-            centroids, boxes = self.detector.detect_with_details(frame, imgsz=640)
-            cam.latest_centroids = centroids
-            cam.latest_boxes = boxes
-
-            # Assign to that camera's zone polygons -> per-zone count and density = count / area_m2
-            for zone in cam.zones:
-                matching_count = sum(1 for c in centroids if point_in_polygon(c, zone.points))
-                dens = round(matching_count / zone.area_m2, 2) if zone.area_m2 > 0 else 0.0
-                cam.zone_metrics[zone.id]["count"] = matching_count
-                cam.zone_metrics[zone.id]["density"] = dens
-
-            # Optical flow (Farneback) per camera on consecutive processed frames
-            dens_map = {z.id: cam.zone_metrics[z.id]["density"] for z in cam.zones}
-            if cam.prev_frame is not None and cam.prev_frame.shape == frame.shape:
-                flow_data = self.flow_analyzer.analyze(cam.prev_frame, frame, cam.zones, dens_map)
+                if len(self.source.cameras) <= 1:
+                    await asyncio.sleep(self.dt)
+                    return {"ts": now_iso, "zones": [], "alerts": list(self.active_alerts.values())}
             else:
-                flow_data = {
-                    z.id: {"jam_score": 0.0, "surge_score": 0.0, "mean_flow_magnitude": 0.0}
-                    for z in cam.zones
-                }
-            cam.prev_frame = frame.copy()
+                if getattr(cam, "is_webcam", False) and "cam_live_error" in self.active_alerts:
+                    del self.active_alerts["cam_live_error"]
 
-            for zone in cam.zones:
-                f_info = flow_data.get(zone.id, {})
-                cam.zone_metrics[zone.id]["jam"] = f_info.get("jam_score", 0.0)
-                cam.zone_metrics[zone.id]["surge"] = f_info.get("surge_score", 0.0)
-                cam.zone_metrics[zone.id]["mean_flow"] = f_info.get("mean_flow_magnitude", 0.0)
+                # Run YOLOv8n person detection (conf >= 0.35, input resized to 640 for speed)
+                centroids, boxes = self.detector.detect_with_details(frame, imgsz=640)
+                cam.latest_centroids = centroids
+                cam.latest_boxes = boxes
 
-            # Draw annotated frames (detections and zones drawn) for streaming
-            annotated = cam.annotate(frame, boxes)
-            self.current_frame = annotated
+                # Assign to that camera's zone polygons -> per-zone count and density = count / area_m2
+                for zone in cam.zones:
+                    matching_count = sum(1 for c in centroids if point_in_polygon(c, zone.points))
+                    dens = round(matching_count / zone.area_m2, 2) if zone.area_m2 > 0 else 0.0
+                    cam.zone_metrics[zone.id]["count"] = matching_count
+                    cam.zone_metrics[zone.id]["density"] = dens
+
+                # Optical flow (Farneback) per camera on consecutive processed frames
+                dens_map = {z.id: cam.zone_metrics[z.id]["density"] for z in cam.zones}
+                if cam.prev_frame is not None and cam.prev_frame.shape == frame.shape:
+                    flow_data = self.flow_analyzer.analyze(cam.prev_frame, frame, cam.zones, dens_map)
+                else:
+                    flow_data = {
+                        z.id: {"jam_score": 0.0, "surge_score": 0.0, "mean_flow_magnitude": 0.0}
+                        for z in cam.zones
+                    }
+                cam.prev_frame = frame.copy()
+
+                for zone in cam.zones:
+                    f_info = flow_data.get(zone.id, {})
+                    cam.zone_metrics[zone.id]["jam"] = f_info.get("jam_score", 0.0)
+                    cam.zone_metrics[zone.id]["surge"] = f_info.get("surge_score", 0.0)
+                    cam.zone_metrics[zone.id]["mean_flow"] = f_info.get("mean_flow_magnitude", 0.0)
+
+                # Draw annotated frames (detections and zones drawn) for streaming
+                annotated = cam.annotate(frame, boxes)
+                self.current_frame = annotated
         else:
             # 1. Acquire Frame & Centroids (Simulator / Webcam)
             ret, frame, sim_centroids = self.source.read()

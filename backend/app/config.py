@@ -32,7 +32,19 @@ class Settings(BaseSettings):
     zones_file: Optional[Path] = None
     weights_path: Path = Path("vendor/weights/yolov8n.pt")
     frame_skip: int = 0
+    source_mode: str = "video"
+    live_hall_area_m2: float = 30.0
     zones: List[Zone] = Field(default_factory=list)
+
+    @property
+    def is_webcam_enabled(self) -> bool:
+        mode = (self.source_mode or "").lower()
+        return "webcam" in mode
+
+    @property
+    def is_video_enabled(self) -> bool:
+        mode = (self.source_mode or "").lower()
+        return "video" in mode or ("simulator" not in mode and "timeline" not in mode and not self.is_webcam_enabled)
 
     @field_validator("sarvam_api_key", "gemini_api_key", mode="before")
     @classmethod
@@ -76,6 +88,17 @@ class Settings(BaseSettings):
             with open(found_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 self.zones = [Zone(**item) for item in data]
+
+        if self.is_webcam_enabled and not any(z.id == "live_hall" for z in self.zones):
+            self.zones.append(
+                Zone(
+                    id="live_hall",
+                    name="Live Hall",
+                    points=[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]],
+                    area_m2=self.live_hall_area_m2,
+                    critical_threshold=4.0,
+                )
+            )
 
         return self
 

@@ -34,10 +34,13 @@ def get_demo_controller():
 @router.get("/api/config")
 def get_config():
     """Returns zone specifications, floor layout, and system settings."""
+    raw_mode = os.environ.get("SOURCE_MODE", settings.source_mode)
+    is_webcam = "webcam" in raw_mode.lower() or settings.is_webcam_enabled
     return {
         "zones": [zone.model_dump() for zone in settings.zones],
         "voice_provider": "sarvam" if settings.sarvam_api_key else "edge-tts",
-        "source_mode": os.environ.get("SOURCE_MODE", "simulator"),
+        "source_mode": raw_mode,
+        "is_webcam_enabled": is_webcam,
     }
 
 

@@ -52,7 +52,7 @@ def test_rest_api_config_and_incidents():
         # GET /api/config
         config = client.get("/api/config").json()
         assert len(config["zones"]) == 8
-        assert config["source_mode"] == "simulator"
+        assert config["source_mode"] in ("simulator", "video")
 
         # GET /api/incidents
         incidents = client.get("/api/incidents").json()
