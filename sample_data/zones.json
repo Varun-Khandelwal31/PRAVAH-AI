@@ -1,0 +1,98 @@
+[
+  {
+    "id": "north_entry",
+    "name": "North Entry",
+    "area_m2": 35.0,
+    "critical_threshold": 4.0,
+    "points": [
+      [0.05, 0.05],
+      [0.48, 0.05],
+      [0.48, 0.25],
+      [0.05, 0.25]
+    ]
+  },
+  {
+    "id": "ticket_queue",
+    "name": "Ticket Queue",
+    "area_m2": 32.0,
+    "critical_threshold": 4.0,
+    "points": [
+      [0.52, 0.05],
+      [0.95, 0.05],
+      [0.95, 0.25],
+      [0.52, 0.25]
+    ]
+  },
+  {
+    "id": "barricade_corridor",
+    "name": "Barricade Corridor",
+    "area_m2": 18.0,
+    "critical_threshold": 4.0,
+    "points": [
+      [0.35, 0.28],
+      [0.65, 0.28],
+      [0.65, 0.45],
+      [0.35, 0.45]
+    ]
+  },
+  {
+    "id": "side_passage",
+    "name": "Side Passage",
+    "area_m2": 24.0,
+    "critical_threshold": 4.0,
+    "points": [
+      [0.05, 0.28],
+      [0.32, 0.28],
+      [0.32, 0.68],
+      [0.05, 0.68]
+    ]
+  },
+  {
+    "id": "east_wing",
+    "name": "East Wing",
+    "area_m2": 36.0,
+    "critical_threshold": 4.0,
+    "points": [
+      [0.68, 0.28],
+      [0.95, 0.28],
+      [0.95, 0.68],
+      [0.68, 0.68]
+    ]
+  },
+  {
+    "id": "main_concourse",
+    "name": "Main Concourse",
+    "area_m2": 54.0,
+    "critical_threshold": 4.0,
+    "points": [
+      [0.35, 0.48],
+      [0.65, 0.48],
+      [0.65, 0.70],
+      [0.35, 0.70]
+    ]
+  },
+  {
+    "id": "gate_2_overflow",
+    "name": "Gate 2 Overflow",
+    "area_m2": 42.0,
+    "critical_threshold": 4.0,
+    "points": [
+      [0.05, 0.73],
+      [0.48, 0.73],
+      [0.48, 0.95],
+      [0.05, 0.95]
+    ]
+  },
+  {
+    "id": "exit_lane",
+    "name": "Exit Lane",
+    "area_m2": 28.0,
+    "critical_threshold": 4.0,
+    "points": [
+      [0.52, 0.73],
+      [0.95, 0.73],
+      [0.95, 0.95],
+      [0.52, 0.95]
+    ]
+  }
+]

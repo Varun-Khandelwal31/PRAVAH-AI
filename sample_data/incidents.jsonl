@@ -1,0 +1,111 @@
+{"ts": "2026-09-08T16:29:40.749671+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.39, "risk": 40.09, "eta_s": 47}
+{"ts": "2026-09-08T16:29:51.200004+00:00", "event": "red", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.72, "risk": 76.01, "eta_s": 1}
+{"ts": "2026-09-08T16:29:51.200312+00:00", "event": "alert", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "actions": ["Open Gate 2 for overflow", "Divert flow via Side Passage", "Dispatch 2 marshals"], "eta_s": 1, "density": 3.72, "risk": 76.01}
+{"ts": "2026-09-08T16:29:52.808370+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}
+{"ts": "2026-09-08T16:29:53.008401+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.89, "risk": 64.11, "eta_s": 1}
+{"ts": "2026-09-08T16:29:57.630301+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 2.17, "risk": 32.8}
+{"ts": "2026-09-08T16:31:04.464583+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.56, "risk": 41.89, "eta_s": 32}
+{"ts": "2026-09-08T16:31:13.309991+00:00", "event": "red", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.67, "risk": 75.46, "eta_s": 2}
+{"ts": "2026-09-08T16:31:13.310282+00:00", "event": "alert", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "actions": ["Open Gate 2 for overflow", "Divert flow via Side Passage", "Dispatch 2 marshals"], "eta_s": 2, "density": 3.67, "risk": 75.46}
+{"ts": "2026-09-08T16:31:13.317645+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}
+{"ts": "2026-09-08T16:31:13.506993+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.67, "risk": 62.48, "eta_s": 2}
+{"ts": "2026-09-08T16:31:18.935498+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.44, "risk": 36.6}
+{"ts": "2026-09-08T16:31:45.385545+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}
+{"ts": "2026-09-08T16:32:00.536566+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.44, "risk": 41.45, "eta_s": 33}
+{"ts": "2026-09-08T16:32:10.584104+00:00", "event": "red", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.61, "risk": 75.4, "eta_s": 2}
+{"ts": "2026-09-08T16:32:10.584428+00:00", "event": "alert", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "actions": ["Open Gate 2 for overflow", "Divert flow via Side Passage", "Dispatch 2 marshals"], "eta_s": 2, "density": 3.61, "risk": 75.4}
+{"ts": "2026-09-08T16:32:10.591355+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}
+{"ts": "2026-09-08T16:32:10.776009+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.61, "risk": 61.1, "eta_s": 2}
+{"ts": "2026-09-08T16:32:15.403635+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.39, "risk": 13.9}
+{"ts": "2026-09-08T16:52:56.062676+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.44, "risk": 40.02, "eta_s": 30}
+{"ts": "2026-09-08T16:52:56.244540+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.44, "risk": 39.96}
+{"ts": "2026-09-08T16:52:56.470952+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.5, "risk": 40.42, "eta_s": 29}
+{"ts": "2026-09-08T16:52:59.079869+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.44, "risk": 39.4}
+{"ts": "2026-09-08T16:53:00.888436+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.5, "risk": 40.37, "eta_s": 45}
+{"ts": "2026-09-08T16:53:12.541296+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.72, "risk": 28.3}
+{"ts": "2026-09-08T16:53:14.146800+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.72, "risk": 42.37, "eta_s": 121}
+{"ts": "2026-09-08T16:53:15.751437+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.72, "risk": 39.4}
+{"ts": "2026-09-08T16:53:15.958198+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.78, "risk": 40.17, "eta_s": 150}
+{"ts": "2026-09-08T16:53:16.355892+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.72, "risk": 39.4}
+{"ts": "2026-09-08T16:53:16.564302+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.78, "risk": 40.17, "eta_s": 150}
+{"ts": "2026-09-08T16:53:16.756318+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.72, "risk": 33.35}
+{"ts": "2026-09-08T16:53:23.384556+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.94, "risk": 42.22, "eta_s": 139}
+{"ts": "2026-09-08T16:53:23.587033+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.94, "risk": 36.23}
+{"ts": "2026-09-08T16:53:24.193513+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.89, "risk": 41.36, "eta_s": 143}
+{"ts": "2026-09-08T16:53:24.994841+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.94, "risk": 30.5}
+{"ts": "2026-09-09T04:51:16.291518+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}
+{"ts": "2026-09-09T04:56:31.508206+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.5, "risk": 41.64, "eta_s": 32}
+{"ts": "2026-09-09T04:56:39.541774+00:00", "event": "red", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.67, "risk": 75.88, "eta_s": 1}
+{"ts": "2026-09-09T04:56:39.542000+00:00", "event": "alert", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "actions": ["Open Gate 2 for overflow", "Divert flow via Side Passage", "Dispatch 2 marshals"], "eta_s": 1, "density": 3.67, "risk": 75.88, "audio_url": "/static/audio/1832afbcacad1d3a_edge.mp3", "via": "via edge-tts"}
+{"ts": "2026-09-09T04:56:39.569071+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}
+{"ts": "2026-09-09T04:56:39.735694+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.67, "risk": 62.71, "eta_s": 1}
+{"ts": "2026-09-09T04:56:45.772317+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.39, "risk": 38.9}
+{"ts": "2026-09-09T04:57:11.957110+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}
+{"ts": "2026-09-09T05:10:52.759941+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}
+{"ts": "2026-09-09T05:21:33.665693+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}
+{"ts": "2026-09-09T05:22:26.514060+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}
+{"ts": "2026-09-09T05:23:08.725554+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}
+{"ts": "2026-09-09T05:23:51.678703+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}
+{"ts": "2026-09-09T06:07:06.987339+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.5, "risk": 40.55, "eta_s": 27}
+{"ts": "2026-09-09T06:07:11.619560+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.39, "risk": 38.9, "ai_summary_hindi": "'\u092c\u0948\u0930"}
+{"ts": "2026-09-09T06:07:55.347783+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.5, "risk": 40.2, "eta_s": 37}
+{"ts": "2026-09-09T06:07:59.190645+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.44, "risk": 39.61}
+{"ts": "2026-09-09T06:07:59.527458+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.5, "risk": 40.21, "eta_s": 49}
+{"ts": "2026-09-09T06:08:03.575395+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.39, "risk": 39.05, "ai_summary_hindi": "'\u092c\u0948\u0930\u093f\u0915"}
+{"ts": "2026-09-09T06:08:03.904310+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.5, "risk": 40.04, "eta_s": 54}
+{"ts": "2026-09-09T06:08:16.529392+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.39, "risk": 38.9}
+{"ts": "2026-09-09T06:08:48.959217+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.5, "risk": 40.48, "eta_s": 42}
+{"ts": "2026-09-09T06:08:51.413455+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.44, "risk": 39.98, "ai_summary_hindi": "'\u092c\u0948"}
+{"ts": "2026-09-09T06:08:51.749000+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.5, "risk": 40.41, "eta_s": 38}
+{"ts": "2026-09-09T06:08:56.138263+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.44, "risk": 39.42}
+{"ts": "2026-09-09T06:08:57.080357+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.56, "risk": 40.62, "eta_s": 46}
+{"ts": "2026-09-09T06:09:04.812152+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.44, "risk": 39.4}
+{"ts": "2026-09-09T06:09:06.146360+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.56, "risk": 41.51, "eta_s": 105}
+{"ts": "2026-09-09T06:09:10.812419+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.61, "risk": 38.44}
+{"ts": "2026-09-09T06:09:10.947219+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.72, "risk": 42.2, "eta_s": 123}
+{"ts": "2026-09-09T06:09:16.889913+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.61, "risk": 38.38, "ai_summary_hindi": "'\u092c"}
+{"ts": "2026-09-09T06:09:17.615350+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.72, "risk": 40.85, "eta_s": 146}
+{"ts": "2026-09-09T06:09:27.888551+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.67, "risk": 35.93, "ai_summary_hindi": "\u092c\u0948\u0930\u0940\u0915\u0947\u0921 \u0915\u0949\u0930\u093f\u0921\u094b\u0930"}
+{"ts": "2026-09-09T06:09:29.415118+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.89, "risk": 40.04, "eta_s": 153}
+{"ts": "2026-09-09T06:09:31.782674+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.89, "risk": 39.86}
+{"ts": "2026-09-09T06:09:32.107910+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 2.06, "risk": 46.0, "eta_s": 101}
+{"ts": "2026-09-09T06:09:48.999739+00:00", "event": "red", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.56, "risk": 75.62, "eta_s": 7}
+{"ts": "2026-09-09T06:09:48.999960+00:00", "event": "alert", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "actions": ["Open Gate 2 for overflow", "Divert flow via Side Passage", "Dispatch 2 marshals"], "eta_s": 7, "density": 3.56, "risk": 75.62, "audio_url": "/static/audio/1832afbcacad1d3a_sarvam.wav", "via": "via sarvam"}
+{"ts": "2026-09-09T06:09:49.199775+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.56, "risk": 73.24, "eta_s": 7}
+{"ts": "2026-09-09T06:09:54.222006+00:00", "event": "red", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.61, "risk": 75.01, "eta_s": 10}
+{"ts": "2026-09-09T06:09:54.222210+00:00", "event": "alert", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "actions": ["Open Gate 2 for overflow", "Divert flow via Side Passage", "Dispatch 2 marshals"], "eta_s": 10, "density": 3.61, "risk": 75.01, "audio_url": "/static/audio/1832afbcacad1d3a_sarvam.wav", "via": "via sarvam"}
+{"ts": "2026-09-09T06:09:54.422879+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.61, "risk": 74.28, "eta_s": 10}
+{"ts": "2026-09-09T06:09:56.434630+00:00", "event": "red", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.67, "risk": 75.26, "eta_s": 13}
+{"ts": "2026-09-09T06:09:56.434865+00:00", "event": "alert", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "actions": ["Open Gate 2 for overflow", "Divert flow via Side Passage", "Dispatch 2 marshals"], "eta_s": 13, "density": 3.67, "risk": 75.26, "audio_url": "/static/audio/1832afbcacad1d3a_sarvam.wav", "via": "via sarvam"}
+{"ts": "2026-09-09T06:10:03.467618+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.78, "risk": 74.69, "eta_s": 15}
+{"ts": "2026-09-09T06:10:05.481381+00:00", "event": "red", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.78, "risk": 75.48, "eta_s": 15}
+{"ts": "2026-09-09T06:10:05.481582+00:00", "event": "alert", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "actions": ["Open Gate 2 for overflow", "Divert flow via Side Passage", "Dispatch 2 marshals"], "eta_s": 15, "density": 3.78, "risk": 75.48, "audio_url": "/static/audio/1832afbcacad1d3a_sarvam.wav", "via": "via sarvam"}
+{"ts": "2026-09-09T06:10:06.080272+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.78, "risk": 74.27, "eta_s": 15}
+{"ts": "2026-09-09T06:10:06.517010+00:00", "event": "red", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.78, "risk": 75.13, "eta_s": 15}
+{"ts": "2026-09-09T06:10:06.517147+00:00", "event": "alert", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "actions": ["Open Gate 2 for overflow", "Divert flow via Side Passage", "Dispatch 2 marshals"], "eta_s": 15, "density": 3.78, "risk": 75.13, "audio_url": "/static/audio/1832afbcacad1d3a_sarvam.wav", "via": "via sarvam"}
+{"ts": "2026-09-09T06:10:06.682726+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.78, "risk": 74.69, "eta_s": 15}
+{"ts": "2026-09-09T06:10:06.888535+00:00", "event": "red", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.78, "risk": 75.59, "eta_s": 15}
+{"ts": "2026-09-09T06:10:06.888730+00:00", "event": "alert", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "actions": ["Open Gate 2 for overflow", "Divert flow via Side Passage", "Dispatch 2 marshals"], "eta_s": 15, "density": 3.78, "risk": 75.59, "audio_url": "/static/audio/1832afbcacad1d3a_sarvam.wav", "via": "via sarvam"}
+{"ts": "2026-09-09T06:10:07.086126+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.78, "risk": 74.98, "eta_s": 15}
+{"ts": "2026-09-09T06:10:07.290261+00:00", "event": "red", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.78, "risk": 75.0, "eta_s": 15}
+{"ts": "2026-09-09T06:10:07.290546+00:00", "event": "alert", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "actions": ["Open Gate 2 for overflow", "Divert flow via Side Passage", "Dispatch 2 marshals"], "eta_s": 15, "density": 3.78, "risk": 75.0, "audio_url": "/static/audio/1832afbcacad1d3a_sarvam.wav", "via": "via sarvam"}
+{"ts": "2026-09-09T06:10:07.488716+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.78, "risk": 74.41, "eta_s": 15}
+{"ts": "2026-09-09T06:10:07.690898+00:00", "event": "red", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.78, "risk": 75.65, "eta_s": 15}
+{"ts": "2026-09-09T06:10:07.691136+00:00", "event": "alert", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "actions": ["Open Gate 2 for overflow", "Divert flow via Side Passage", "Dispatch 2 marshals"], "eta_s": 15, "density": 3.78, "risk": 75.65, "audio_url": "/static/audio/1832afbcacad1d3a_sarvam.wav", "via": "via sarvam"}
+{"ts": "2026-09-09T06:10:07.891075+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.78, "risk": 74.72, "eta_s": 15}
+{"ts": "2026-09-09T06:10:08.294392+00:00", "event": "red", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.78, "risk": 75.69, "eta_s": 15}
+{"ts": "2026-09-09T06:10:08.294579+00:00", "event": "alert", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "actions": ["Open Gate 2 for overflow", "Divert flow via Side Passage", "Dispatch 2 marshals"], "eta_s": 15, "density": 3.78, "risk": 75.69, "audio_url": "/static/audio/1832afbcacad1d3a_sarvam.wav", "via": "via sarvam"}
+{"ts": "2026-09-09T06:10:08.693653+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.78, "risk": 69.13, "eta_s": 19}
+{"ts": "2026-09-09T06:10:32.211645+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}
+{"ts": "2026-09-09T06:10:37.349200+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.78, "risk": 37.95, "ai_summary_hindi": "'\u092c\u0948\u0930"}
+{"ts": "2026-09-09T08:20:28.361174+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}
+{"ts": "2026-09-09T08:56:35.263148+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.44, "risk": 40.21, "eta_s": 89}
+{"ts": "2026-09-09T08:57:01.672877+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 1.61, "risk": 35.5}
+{"ts": "2026-09-09T08:57:08.826434+00:00", "event": "amber", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 2.39, "risk": 43.73, "eta_s": 125}
+{"ts": "2026-09-09T08:58:10.870665+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}
+{"ts": "2026-09-09T08:58:16.552175+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "density": 3.44, "risk": 34.4, "ai_summary_hindi": "'"}
+{"ts": "2026-09-11T04:57:43.682408+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}
+{"ts": "2026-09-11T04:59:51.896359+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}
+{"ts": "2026-09-11T05:04:54.125502+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}
+{"ts": "2026-09-11T05:20:41.451266+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}
+{"ts": "2026-09-11T05:59:53.668555+00:00", "event": "cleared", "zone_id": "barricade_corridor", "zone": "Barricade Corridor", "action": "Manual demo reset"}

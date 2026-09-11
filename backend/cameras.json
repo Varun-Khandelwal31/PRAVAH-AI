@@ -1,0 +1,138 @@
+[
+  {
+    "cam_id": "CAM-01",
+    "name": "Main Entry",
+    "source": "sample_data/crowd1.mp4",
+    "crop": [0.0, 0.0, 0.5, 0.5],
+    "zones": [
+      {
+        "zone_id": "north_entry",
+        "alias": "Z1",
+        "polygon": [
+          [0.05, 0.05],
+          [0.95, 0.05],
+          [0.95, 0.95],
+          [0.05, 0.95]
+        ],
+        "area_m2": 35.0
+      }
+    ]
+  },
+  {
+    "cam_id": "CAM-02",
+    "name": "Queue Corridor",
+    "source": "sample_data/crowd1.mp4",
+    "crop": [0.5, 0.0, 0.5, 0.5],
+    "zones": [
+      {
+        "zone_id": "ticket_queue",
+        "alias": "Z2",
+        "polygon": [
+          [0.05, 0.05],
+          [0.95, 0.05],
+          [0.95, 0.95],
+          [0.05, 0.95]
+        ],
+        "area_m2": 32.0
+      }
+    ]
+  },
+  {
+    "cam_id": "CAM-03",
+    "name": "Barricade Corridor",
+    "source": "sample_data/crowd2.mp4",
+    "crop": [0.0, 0.0, 0.5, 0.5],
+    "zones": [
+      {
+        "zone_id": "barricade_corridor",
+        "alias": "Z3",
+        "polygon": [
+          [0.05, 0.05],
+          [0.95, 0.05],
+          [0.95, 0.95],
+          [0.05, 0.95]
+        ],
+        "area_m2": 18.0
+      }
+    ]
+  },
+  {
+    "cam_id": "CAM-04",
+    "name": "Side Passage",
+    "source": "sample_data/crowd2.mp4",
+    "crop": [0.5, 0.0, 0.5, 0.5],
+    "zones": [
+      {
+        "zone_id": "side_passage",
+        "alias": "Z4",
+        "polygon": [
+          [0.05, 0.05],
+          [0.95, 0.05],
+          [0.95, 0.95],
+          [0.05, 0.95]
+        ],
+        "area_m2": 24.0
+      }
+    ]
+  },
+  {
+    "cam_id": "CAM-05",
+    "name": "Main Concourse",
+    "source": "sample_data/crowd1.mp4",
+    "crop": [0.0, 0.5, 0.5, 0.5],
+    "zones": [
+      {
+        "zone_id": "main_concourse",
+        "alias": "Z5",
+        "polygon": [
+          [0.05, 0.05],
+          [0.50, 0.05],
+          [0.50, 0.95],
+          [0.05, 0.95]
+        ],
+        "area_m2": 54.0
+      },
+      {
+        "zone_id": "east_wing",
+        "alias": "Z6",
+        "polygon": [
+          [0.50, 0.05],
+          [0.95, 0.05],
+          [0.95, 0.95],
+          [0.50, 0.95]
+        ],
+        "area_m2": 36.0
+      }
+    ]
+  },
+  {
+    "cam_id": "CAM-06",
+    "name": "South Entry & Exits",
+    "source": "sample_data/crowd2.mp4",
+    "crop": [0.5, 0.5, 0.5, 0.5],
+    "zones": [
+      {
+        "zone_id": "gate_2_overflow",
+        "alias": "Z7",
+        "polygon": [
+          [0.05, 0.05],
+          [0.95, 0.05],
+          [0.95, 0.50],
+          [0.05, 0.50]
+        ],
+        "area_m2": 42.0
+      },
+      {
+        "zone_id": "exit_lane",
+        "alias": "Z8",
+        "polygon": [
+          [0.05, 0.50],
+          [0.95, 0.50],
+          [0.95, 0.95],
+          [0.05, 0.95]
+        ],
+        "area_m2": 28.0
+      }
+    ]
+  }
+]

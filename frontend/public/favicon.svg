@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00e5ff"/>
+      <stop offset="100%" stop-color="#0077b6"/>
+    </linearGradient>
+    <radialGradient id="radarGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00e5ff" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#00e5ff" stop-opacity="0.0"/>
+    </radialGradient>
+  </defs>
+  <!-- Dark background container -->
+  <rect width="64" height="64" rx="14" fill="#0A0E1A"/>
+  <rect width="62" height="62" x="1" y="1" rx="13" fill="none" stroke="#1e293b" stroke-width="1.5"/>
+
+  <!-- Radar concentric circles -->
+  <circle cx="32" cy="32" r="22" fill="none" stroke="#00e5ff" stroke-width="1" stroke-opacity="0.2"/>
+  <circle cx="32" cy="32" r="14" fill="none" stroke="#00e5ff" stroke-width="1" stroke-opacity="0.4"/>
+  <circle cx="32" cy="32" r="6" fill="url(#shieldGrad)"/>
+
+  <!-- Crosshairs -->
+  <line x1="32" y1="10" x2="32" y2="54" stroke="#00e5ff" stroke-width="1" stroke-opacity="0.3" stroke-dasharray="2 2"/>
+  <line x1="10" y1="32" x2="54" y2="32" stroke="#00e5ff" stroke-width="1" stroke-opacity="0.3" stroke-dasharray="2 2"/>
+
+  <!-- Radar sweep pulse -->
+  <path d="M 32 32 L 50 18 A 22 22 0 0 0 32 10 Z" fill="url(#radarGrad)"/>
+
+  <!-- Outer shield emblem accent -->
+  <path d="M 32 6 L 48 14 C 48 30 32 46 32 58 C 32 46 16 30 16 14 Z" fill="none" stroke="url(#shieldGrad)" stroke-width="2.2" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,11 @@
+fastapi==0.115.8
+uvicorn[standard]==0.34.0
+opencv-python==4.10.0.84
+ultralytics==8.3.70
+numpy==1.26.4
+pytest==8.3.4
+edge-tts==7.2.8
+websockets==14.2
+python-dotenv==1.0.1
+pydantic-settings==2.7.1
+httpx==0.28.1
